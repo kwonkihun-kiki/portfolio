@@ -197,19 +197,30 @@
   .layout-grid2 .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-grid2 .d-img-wrap img.loaded { opacity: 1; }
 
-  /* confessions: 4열 — fade 전환 */
+  /* confessions: 4열 — 클릭 뒤집기 */
   .layout-confessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; align-items: start; }
-  .layout-confessions .d-img-wrap { background: none; position: relative; overflow: hidden; }
+  .layout-confessions .d-img-wrap {
+    background: none; position: relative;
+    perspective: 600px; cursor: none;
+  }
   .layout-confessions .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
-  .layout-confessions .d-img-wrap .img-base { position: relative; z-index: 1; transition: opacity 0.5s ease; }
-  .layout-confessions .d-img-wrap .img-hover {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; opacity: 0; transition: opacity 0.5s ease; display: block !important; z-index: 2;
+  /* flip inner */
+  .layout-confessions .flip-inner {
+    position: relative; width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
   }
-  /* hover 대신 JS로 제어되는 .faded 클래스 사용 */
-  .layout-confessions .d-img-wrap.faded .img-base { opacity: 0 !important; }
-  .layout-confessions .d-img-wrap.faded .img-hover { opacity: 1 !important; }
+  .layout-confessions .d-img-wrap.flipped .flip-inner { transform: rotateY(180deg); }
+  .layout-confessions .img-base {
+    display: block; width: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  }
+  .layout-confessions .img-hover {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; display: block !important;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    transform: rotateY(180deg);
+  }
 
   /* hover(2열): mechanical fruits, BDS */
   .layout-hover { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -323,13 +334,12 @@
     html, body { height: 100%; overflow: hidden; }
     main.page { height: calc(100vh - 45px); overflow: hidden; }
 
-    /* 홈: display:flex 유지하면서 스크롤 */
-    main.page#home {
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
-      -webkit-overflow-scrolling: touch !important;
+    /* 홈 스크롤: JS로 body.home-active 클래스로 제어 */
+    body.home-active { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
+    body.home-active #home {
       height: auto !important;
       min-height: calc(100vh - 45px) !important;
+      overflow: visible !important;
     }
 
     /* Misc: 스크롤 허용 */
@@ -1158,41 +1168,25 @@ function renderDetail(p) {
     container.appendChild(wrap);
 
   } else if (p.layout === 'confessions') {
-    // 1~12: 4열 fade 쌍
+    // 1~12: 4열 flip 카드
     const wrap1 = document.createElement('div');
     wrap1.className = 'layout-confessions';
-    const fadeCells = [];
     (p.hover || []).forEach(([b, h]) => {
       const cell = document.createElement('div');
       cell.className = 'd-img-wrap';
+      // flip-inner 래퍼
+      const inner = document.createElement('div');
+      inner.className = 'flip-inner';
       const imgBase  = lazyImg(base + b, p.title, 'img-base');
       const imgHover = lazyImg(base + h, p.title, 'img-hover');
-      cell.appendChild(imgBase);
-      cell.appendChild(imgHover);
+      inner.appendChild(imgBase);
+      inner.appendChild(imgHover);
+      cell.appendChild(inner);
+      // 클릭 시 뒤집기
+      cell.addEventListener('click', () => cell.classList.toggle('flipped'));
       wrap1.appendChild(cell);
-      fadeCells.push(cell);
     });
     container.appendChild(wrap1);
-
-    // 자동 fade 사이클 — 2.8초마다 랜덤으로 faded 토글
-    if (fadeCells.length) {
-      let fadeTimer = null;
-      function cycleFade() {
-        // 랜덤 셀 하나 선택해서 faded 토글
-        const idx = Math.floor(Math.random() * fadeCells.length);
-        fadeCells[idx].classList.toggle('faded');
-        fadeTimer = setTimeout(cycleFade, 1800 + Math.random() * 2000);
-      }
-      // 이미지 로드 후 시작
-      setTimeout(cycleFade, 1200);
-      // 상세뷰 벗어날 때 정리
-      const backBtn = document.getElementById('detail-back');
-      const origClick = backBtn.onclick;
-      backBtn.addEventListener('click', function onBack() {
-        clearTimeout(fadeTimer);
-        backBtn.removeEventListener('click', onBack);
-      }, { once: true });
-    }
 
     // 13~24: 4열 일반
     if (p.images2 && p.images2.length) {
@@ -1204,7 +1198,10 @@ function renderDetail(p) {
       p.images2.forEach(f => {
         const cell = document.createElement('div');
         cell.className = 'd-img-wrap';
-        cell.appendChild(lazyImg(base + f, p.title));
+        const inner = document.createElement('div');
+        inner.className = 'flip-inner';
+        inner.appendChild(lazyImg(base + f, p.title));
+        cell.appendChild(inner);
         wrap2.appendChild(cell);
       });
       container.appendChild(wrap2);
@@ -1393,23 +1390,36 @@ if (homeImg) {
 }
 
 // ── Page nav ──
+function navigateTo(pageId) {
+  var validPages = ['home','works','ceramic','misc','info'];
+  if (!validPages.includes(pageId)) pageId = 'home';
+  document.querySelectorAll('nav.topnav a[data-page]').forEach(x => x.classList.remove('active'));
+  var navLink = document.querySelector('nav.topnav a[data-page="' + pageId + '"]');
+  if (navLink) navLink.classList.add('active');
+  document.querySelectorAll('main.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.body.classList.toggle('home-active', pageId === 'home');
+  if (pageId === 'ceramic' && !window.__CERAMIC_CANVAS_READY__) {
+    window.__CERAMIC_CANVAS_READY__ = true;
+    requestAnimationFrame(() => { if (window.__CERAMIC_START__) window.__CERAMIC_START__(); });
+  }
+  if (pageId === 'works') initMobileWorksPanel();
+  if (pageId === 'misc') requestAnimationFrame(function(){ if(window.__MISC_START__) window.__MISC_START__(); });
+}
+
 document.querySelectorAll('nav.topnav a[data-page]').forEach(a => {
   a.addEventListener('click', () => {
-    document.querySelectorAll('nav.topnav a[data-page]').forEach(x => x.classList.remove('active'));
-    a.classList.add('active');
-    document.querySelectorAll('main.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(a.dataset.page).classList.add('active');
-    // ceramic 탭: display 전환 후 다음 프레임에 canvas 초기화
-    if (a.dataset.page === 'ceramic' && !window.__CERAMIC_CANVAS_READY__) {
-      window.__CERAMIC_CANVAS_READY__ = true;
-      requestAnimationFrame(() => {
-        if (window.__CERAMIC_START__) window.__CERAMIC_START__();
-      });
-    }
-    // Works 탭 진입 시 모바일 패널 초기화
-    if (a.dataset.page === 'works') initMobileWorksPanel();
+    var pageId = a.dataset.page;
+    location.hash = pageId;
+    navigateTo(pageId);
   });
 });
+
+// 초기 로드 — hash 있으면 그 탭으로
+(function() {
+  var hash = location.hash.replace('#','');
+  navigateTo(hash || 'home');
+})();
 
 // ── 모바일 Works 탭 토글 ──
 function isMobile() { return window.innerWidth <= 800; }
@@ -1717,6 +1727,10 @@ document.querySelectorAll('.ig-val .kk-trigger').forEach(el => el.addEventListen
   function stopMisc() {
     if (RAF) { cancelAnimationFrame(RAF); RAF = null; }
   }
+
+  // 전역 노출 — hash 진입 시 사용
+  window.__MISC_START__ = startMisc;
+  window.__MISC_STOP__  = stopMisc;
 
   document.querySelectorAll('nav.topnav a[data-page]').forEach(function(a) {
     a.addEventListener('click', function() {
