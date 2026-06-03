@@ -199,10 +199,25 @@
 
   /* confessions: 4열 — 페이드 전환 */
   .layout-confessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; align-items: start; }
+<<<<<<< Updated upstream
   .layout-confessions .d-img-wrap { background: none; position: relative; }
   .layout-confessions .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
   .layout-confessions .img-base { position: relative; z-index: 1; transition: opacity 0.6s ease; }
+=======
+  .layout-confessions .d-img-wrap { background: none; position: relative; perspective: 600px; cursor: none; }
+  .layout-confessions .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
+  .layout-confessions .flip-inner {
+    position: relative; width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+  }
+  .layout-confessions .d-img-wrap.flipped .flip-inner { transform: rotateY(180deg); }
+  .layout-confessions .img-base {
+    display: block; width: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  }
+>>>>>>> Stashed changes
   .layout-confessions .img-hover {
     position: absolute; inset: 0; width: 100%; height: 100%;
     object-fit: cover; display: block !important; z-index: 2;
@@ -1159,6 +1174,7 @@ function renderDetail(p) {
     container.appendChild(wrap);
 
   } else if (p.layout === 'confessions') {
+<<<<<<< Updated upstream
     // 1~12: 4열 페이드 — 자동 사이클
     const wrap1 = document.createElement('div');
     wrap1.className = 'layout-confessions';
@@ -1183,6 +1199,35 @@ function renderDetail(p) {
       autoTimer = setTimeout(autoFade, 1500 + Math.random() * 1800);
     }
     setTimeout(autoFade, 800);
+=======
+    // 1~12: 4열 flip 카드 — 자동 사이클
+    const wrap1 = document.createElement('div');
+    wrap1.className = 'layout-confessions';
+    const flipCells = [];
+    (p.hover || []).forEach(([b, h]) => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      const inner = document.createElement('div');
+      inner.className = 'flip-inner';
+      const imgBase  = lazyImg(base + b, p.title, 'img-base');
+      const imgHover = lazyImg(base + h, p.title, 'img-hover');
+      inner.appendChild(imgBase);
+      inner.appendChild(imgHover);
+      cell.appendChild(inner);
+      wrap1.appendChild(cell);
+      flipCells.push(cell);
+    });
+    container.appendChild(wrap1);
+
+    // 자동 사이클 — 1.5~3초마다 랜덤 뒤집기
+    let autoTimer = null;
+    function autoFlip() {
+      const pick = flipCells[Math.floor(Math.random() * flipCells.length)];
+      pick.classList.toggle('flipped');
+      autoTimer = setTimeout(autoFlip, 1500 + Math.random() * 1800);
+    }
+    setTimeout(autoFlip, 800);
+>>>>>>> Stashed changes
     document.getElementById('detail-back').addEventListener('click', function() {
       clearTimeout(autoTimer);
     }, { once: true });
@@ -1197,7 +1242,14 @@ function renderDetail(p) {
       p.images2.forEach(f => {
         const cell = document.createElement('div');
         cell.className = 'd-img-wrap';
+<<<<<<< Updated upstream
         cell.appendChild(lazyImg(base + f, p.title));
+=======
+        const inner2 = document.createElement('div');
+        inner2.className = 'flip-inner';
+        inner2.appendChild(lazyImg(base + f, p.title));
+        cell.appendChild(inner2);
+>>>>>>> Stashed changes
         wrap2.appendChild(cell);
       });
       container.appendChild(wrap2);
