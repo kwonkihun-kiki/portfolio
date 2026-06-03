@@ -1166,36 +1166,21 @@ function renderDetail(p) {
     container.appendChild(wrap);
 
   } else if (p.layout === 'confessions') {
-    // 1~12: 4열 flip 카드 — 자동 사이클
+    // 1~12: 4열 클릭 뒤집기
     const wrap1 = document.createElement('div');
     wrap1.className = 'layout-confessions';
-    const flipCells = [];
     (p.hover || []).forEach(([b, h]) => {
       const cell = document.createElement('div');
       cell.className = 'd-img-wrap';
       const inner = document.createElement('div');
       inner.className = 'flip-inner';
-      const imgBase  = lazyImg(base + b, p.title, 'img-base');
-      const imgHover = lazyImg(base + h, p.title, 'img-hover');
-      inner.appendChild(imgBase);
-      inner.appendChild(imgHover);
+      inner.appendChild(lazyImg(base + b, p.title, 'img-base'));
+      inner.appendChild(lazyImg(base + h, p.title, 'img-hover'));
       cell.appendChild(inner);
+      cell.addEventListener('click', () => cell.classList.toggle('flipped'));
       wrap1.appendChild(cell);
-      flipCells.push(cell);
     });
     container.appendChild(wrap1);
-
-    // 자동 사이클 — 1.5~3초마다 랜덤 뒤집기
-    let autoTimer = null;
-    function autoFlip() {
-      const pick = flipCells[Math.floor(Math.random() * flipCells.length)];
-      pick.classList.toggle('flipped');
-      autoTimer = setTimeout(autoFlip, 1500 + Math.random() * 1800);
-    }
-    setTimeout(autoFlip, 800);
-    document.getElementById('detail-back').addEventListener('click', function() {
-      clearTimeout(autoTimer);
-    }, { once: true });
 
     // 13~24: 4열 일반 (모바일에서 2열)
     if (p.images2 && p.images2.length) {
@@ -1207,10 +1192,10 @@ function renderDetail(p) {
       p.images2.forEach(f => {
         const cell = document.createElement('div');
         cell.className = 'd-img-wrap';
-        const inner2 = document.createElement('div');
-        inner2.className = 'flip-inner';
-        inner2.appendChild(lazyImg(base + f, p.title));
-        cell.appendChild(inner2);
+        const inner = document.createElement('div');
+        inner.className = 'flip-inner';
+        inner.appendChild(lazyImg(base + f, p.title));
+        cell.appendChild(inner);
         wrap2.appendChild(cell);
       });
       container.appendChild(wrap2);
