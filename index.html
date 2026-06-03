@@ -147,13 +147,13 @@
   }
   .archive-item { padding: 16px; }
   .archive-thumb {
-    width: 100%; background: #f3f3f3; margin-bottom: 16px;
-    overflow: hidden; display: flex; align-items: center; justify-content: center;
+    width: 100%; margin-bottom: 16px;
+    overflow: hidden;
   }
   .archive-thumb img {
-    width: 100%; height: auto; display: none; opacity: 0; transition: opacity 0.35s ease;
+    width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s ease;
   }
-  .archive-thumb img.loaded { display: block; opacity: 1; }
+  .archive-thumb img.loaded { opacity: 1; }
   .archive-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px; }
   .archive-row .a-title { font-size: 13px; font-weight: 500; line-height: 1.3; }
   .archive-row .a-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; margin-top: 5px; }
@@ -178,24 +178,25 @@
   #detail-images { width: 100%; }
 
   /* default: 세로 나열 */
-  .layout-default .d-img-wrap { width: 100%; margin-bottom: 12px; background: #f3f3f3; }
-  .layout-default .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-default .d-img-wrap { width: 100%; margin-bottom: 12px; background: none; }
+  .layout-default .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-default .d-img-wrap img.loaded { opacity: 1; }
 
   /* grid2: 2열 그리드 */
-  .layout-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .layout-grid2 .d-img-wrap { background: #f3f3f3; }
-  .layout-grid2 .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
+  .layout-grid2 .d-img-wrap { background: none; }
+  .layout-grid2 .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-grid2 .d-img-wrap img.loaded { opacity: 1; }
 
   /* confessions: 4열 */
-  .layout-confessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .layout-confessions .d-img-wrap { background: #f3f3f3; position: relative; overflow: hidden; }
-  .layout-confessions .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-confessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; align-items: start; }
+  .layout-confessions .d-img-wrap { background: none; position: relative; overflow: hidden; }
+  .layout-confessions .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
+  .layout-confessions .d-img-wrap .img-base { position: relative; z-index: 1; }
   .layout-confessions .d-img-wrap .img-hover {
     position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important;
+    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important; z-index: 2;
   }
   .layout-confessions .d-img-wrap:hover .img-base { opacity: 0 !important; }
   .layout-confessions .d-img-wrap:hover .img-hover { opacity: 1 !important; }
@@ -212,21 +213,24 @@
   .layout-hover .d-img-wrap:hover .img-base { opacity: 0 !important; }
   .layout-hover .d-img-wrap:hover .img-hover { opacity: 1 !important; }
 
-  /* bds_custom: hover쌍 3열 2줄 + 나머지 2열 */
-  .layout-bds-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 4px; }
-  .layout-bds-top .d-img-wrap { background: #f3f3f3; position: relative; overflow: hidden; }
-  .layout-bds-top .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
-  .layout-bds-top .d-img-wrap img.loaded { opacity: 1; }
-  .layout-bds-top .d-img-wrap .img-hover {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important;
-  }
-  .layout-bds-top .d-img-wrap:hover .img-base { opacity: 0 !important; }
-  .layout-bds-top .d-img-wrap:hover .img-hover { opacity: 1 !important; }
-  .layout-bds-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-  .layout-bds-bottom .d-img-wrap { background: #f3f3f3; }
-  .layout-bds-bottom .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
-  .layout-bds-bottom .d-img-wrap img.loaded { opacity: 1; }
+  /* bds_custom: 3열 그리드 */
+  .layout-bds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; align-items: start; }
+  .layout-bds .d-img-wrap { background: none; }
+  .layout-bds .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-bds .d-img-wrap img.loaded { opacity: 1; }
+
+  /* nondry: 4열 그리드 */
+  .layout-nondry { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; align-items: start; }
+  .layout-nondry .d-img-wrap { background: none; }
+  .layout-nondry .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-nondry .d-img-wrap img.loaded { opacity: 1; }
+
+  /* hoonies: grid2 + 7번째 전체너비 */
+  .layout-hoonies { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
+  .layout-hoonies .d-img-wrap { background: none; }
+  .layout-hoonies .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-hoonies .d-img-wrap img.loaded { opacity: 1; }
+  .layout-hoonies .d-img-wrap.full-row { grid-column: 1 / -1; }
 
   /* jumble1: 4열 */
   .layout-jumble1 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
@@ -244,9 +248,9 @@
   .layout-jumble2 .d-img-wrap img.loaded { opacity: 1; }
 
   /* gorillas: 4열 */
-  .layout-gorillas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .layout-gorillas .d-img-wrap { background: #f3f3f3; }
-  .layout-gorillas .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-gorillas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: start; }
+  .layout-gorillas .d-img-wrap { background: none; }
+  .layout-gorillas .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-gorillas .d-img-wrap img.loaded { opacity: 1; }
 
   /* reconstruction: 그래픽(좌) + 사진(우) 나란히 */
@@ -442,9 +446,8 @@ const PROJECTS = [
     year: '2026',
     type: 'Identity',
     layout: 'bds_custom',
-    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg'],
-    hover:  [['01.jpg','01h.jpg'],['02.jpg','02h.jpg'],['03.jpg','03h.jpg'],
-             ['04.jpg','04h.jpg'],['05.jpg','05h.jpg'],['06.jpg','06h.jpg']]
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg',
+             '08.jpg','09.jpg','10.jpg','11.jpg','13.jpg','14.jpg']
   },
   {
     id: 'p13',
@@ -489,8 +492,6 @@ const PROJECTS = [
     year: '2024',
     type: 'Editorial',
     layout: 'confessions',
-    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg',
-             '07.jpg','08.jpg','09.jpg','10.jpg','11.jpg','12.jpg'],
     hover:  [['01.jpg','01h.jpg'],['02.jpg','02h.jpg'],['03.jpg','03h.jpg'],
              ['04.jpg','04h.jpg'],['05.jpg','05h.jpg'],['06.jpg','06h.jpg'],
              ['07.jpg','07h.jpg'],['08.jpg','08h.jpg'],['09.jpg','09h.jpg'],
@@ -504,9 +505,8 @@ const PROJECTS = [
     title: 'mechanical fruits',
     year: '2023',
     type: 'Print',
-    layout: 'hover',
-    images: ['01.jpg','02.jpg','03.jpg'],
-    hover:  [['01.jpg','01h.jpg'],['02.jpg','02h.jpg'],['03.jpg','03h.jpg']]
+    layout: 'grid2',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg']
   },
   {
     id: 'p05',
@@ -515,7 +515,9 @@ const PROJECTS = [
     year: '2023',
     type: 'Book',
     layout: 'gorillas',
-    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg']
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg',
+             '07.jpg','08.jpg','09.jpg','10.jpg','11.jpg','12.jpg',
+             '13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg']
   },
   {
     id: 'p06',
@@ -550,7 +552,7 @@ const PROJECTS = [
     title: 'Hoonies cookies',
     year: '2022',
     type: 'Identity',
-    layout: 'grid2',
+    layout: 'hoonies',
     images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg',
              '07.jpg','08.jpg','09.jpg','10.jpg','11.jpg','12.jpg']
   },
@@ -560,7 +562,7 @@ const PROJECTS = [
     title: 'Nondry',
     year: '2022',
     type: 'Print',
-    layout: 'grid2',
+    layout: 'nondry',
     images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg']
   },
   {
@@ -579,7 +581,6 @@ const PROJECTS = [
     year: '2022',
     type: 'Print',
     layout: 'reconstruction',
-    // graphic: 01~09, photo: 10~19 (파일명 그대로)
     images:  ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg','10.jpg'],
     images2: ['11.jpg','12.jpg','13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg','19.jpg','20.jpg']
   },
@@ -649,17 +650,9 @@ function lazyImg(src, alt, extraClass) {
   return img;
 }
 
-// archive thumb 즉시 로드 함수 (DOM append 후 호출)
+// archive thumb 즉시 로드
 function observeThumb(img) {
-  // root: null (뷰포트 기준) + rootMargin 크게 줘서 확실히 감지
-  const thumbObserver = new IntersectionObserver((entries, obs) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      loadImg(entry.target);
-      obs.unobserve(entry.target);
-    });
-  }, { root: null, rootMargin: '9999px', threshold: 0 });
-  thumbObserver.observe(img);
+  loadImg(img);
 }
 
 // ── Works 리스트 렌더링 ──
@@ -678,8 +671,8 @@ PROJECTS.forEach(p => {
   div.className = 'archive-item';
   div.id = 'arc-' + p.id;
 
-  // thumb 파일명: 전부 thumb.jpg (p08 nondry만 thumb.png 예외 유지)
-  const tFile = p.folder === 'p08_nondry' ? 'thumb.png' : 'thumb.jpg';
+  // thumb 파일명: 전부 thumb.jpg
+  const tFile = 'thumb.jpg';
 
   const thumbDiv = document.createElement('div');
   thumbDiv.className = 'archive-thumb';
@@ -739,6 +732,42 @@ function renderDetail(p) {
         wrap.appendChild(cell);
       });
     }
+    container.appendChild(wrap);
+
+  } else if (p.layout === 'bds_custom') {
+    // hover 파일 없음, 3열 그리드
+    const wrap = document.createElement('div');
+    wrap.className = 'layout-bds';
+    (p.images || []).forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      cell.appendChild(lazyImg(base + f, p.title));
+      wrap.appendChild(cell);
+    });
+    container.appendChild(wrap);
+
+  } else if (p.layout === 'hoonies') {
+    // 2열, 7번째만 전체너비
+    const wrap = document.createElement('div');
+    wrap.className = 'layout-hoonies';
+    (p.images || []).forEach((f, idx) => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap' + (idx === 6 ? ' full-row' : '');
+      cell.appendChild(lazyImg(base + f, p.title));
+      wrap.appendChild(cell);
+    });
+    container.appendChild(wrap);
+
+  } else if (p.layout === 'nondry') {
+    // 4열 그리드
+    const wrap = document.createElement('div');
+    wrap.className = 'layout-nondry';
+    (p.images || []).forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      cell.appendChild(lazyImg(base + f, p.title));
+      wrap.appendChild(cell);
+    });
     container.appendChild(wrap);
 
   } else if (p.layout === 'grid2') {
