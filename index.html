@@ -197,32 +197,22 @@
   .layout-grid2 .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-grid2 .d-img-wrap img.loaded { opacity: 1; }
 
-  /* confessions: 4열 — 클릭 뒤집기 */
+  /* confessions: 4열 — 페이드 전환 */
   .layout-confessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; align-items: start; }
-  .layout-confessions .d-img-wrap {
-    background: none; position: relative;
-    perspective: 600px; cursor: none;
-  }
+  .layout-confessions .d-img-wrap { background: none; position: relative; }
   .layout-confessions .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
-  /* flip inner */
-  .layout-confessions .flip-inner {
-    position: relative; width: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
-  }
-  .layout-confessions .d-img-wrap.flipped .flip-inner { transform: rotateY(180deg); }
-  .layout-confessions .img-base {
-    display: block; width: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  }
+  .layout-confessions .img-base { position: relative; z-index: 1; transition: opacity 0.6s ease; }
   .layout-confessions .img-hover {
     position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; display: block !important;
-    backface-visibility: hidden; -webkit-backface-visibility: hidden;
-    transform: rotateY(180deg);
+    object-fit: cover; display: block !important; z-index: 2;
+    opacity: 0; transition: opacity 0.6s ease;
   }
+  .layout-confessions .d-img-wrap.faded .img-base { opacity: 0; }
+  .layout-confessions .d-img-wrap.faded .img-hover { opacity: 1; }
 
-  /* hover(2열): mechanical fruits, BDS */
+  /* confessions-wide: 13~24용, 모바일에서 2열로 */
+  .layout-confessions-wide { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; align-items: start; }
   .layout-hover { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .layout-hover .d-img-wrap { background: #f3f3f3; position: relative; overflow: hidden; }
   .layout-hover .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
@@ -389,7 +379,8 @@
     .works-right.mob-active { display: block; }
 
     /* 상세뷰 레이아웃 조정 */
-    .layout-confessions { grid-template-columns: repeat(2, 1fr); }
+    .layout-confessions { grid-template-columns: repeat(4, 1fr); }
+    .layout-confessions-wide { grid-template-columns: repeat(2, 1fr); }
     .layout-grid2, .layout-hover, .layout-gorillas,
     .layout-reconstruction, .layout-bds, .layout-nondry,
     .layout-jumble1 { grid-template-columns: 1fr 1fr; }
@@ -1168,40 +1159,45 @@ function renderDetail(p) {
     container.appendChild(wrap);
 
   } else if (p.layout === 'confessions') {
-    // 1~12: 4열 flip 카드
+    // 1~12: 4열 페이드 — 자동 사이클
     const wrap1 = document.createElement('div');
     wrap1.className = 'layout-confessions';
+    const fadeCells = [];
     (p.hover || []).forEach(([b, h]) => {
       const cell = document.createElement('div');
       cell.className = 'd-img-wrap';
-      // flip-inner 래퍼
-      const inner = document.createElement('div');
-      inner.className = 'flip-inner';
       const imgBase  = lazyImg(base + b, p.title, 'img-base');
       const imgHover = lazyImg(base + h, p.title, 'img-hover');
-      inner.appendChild(imgBase);
-      inner.appendChild(imgHover);
-      cell.appendChild(inner);
-      // 클릭 시 뒤집기
-      cell.addEventListener('click', () => cell.classList.toggle('flipped'));
+      cell.appendChild(imgBase);
+      cell.appendChild(imgHover);
       wrap1.appendChild(cell);
+      fadeCells.push(cell);
     });
     container.appendChild(wrap1);
 
-    // 13~24: 4열 일반
+    // 자동 사이클 — 1.5~3초마다 랜덤 페이드
+    let autoTimer = null;
+    function autoFade() {
+      const pick = fadeCells[Math.floor(Math.random() * fadeCells.length)];
+      pick.classList.toggle('faded');
+      autoTimer = setTimeout(autoFade, 1500 + Math.random() * 1800);
+    }
+    setTimeout(autoFade, 800);
+    document.getElementById('detail-back').addEventListener('click', function() {
+      clearTimeout(autoTimer);
+    }, { once: true });
+
+    // 13~24: 4열 일반 (모바일에서 2열)
     if (p.images2 && p.images2.length) {
       const gap = document.createElement('div');
       gap.style.height = '24px';
       container.appendChild(gap);
       const wrap2 = document.createElement('div');
-      wrap2.className = 'layout-confessions';
+      wrap2.className = 'layout-confessions layout-confessions-wide';
       p.images2.forEach(f => {
         const cell = document.createElement('div');
         cell.className = 'd-img-wrap';
-        const inner = document.createElement('div');
-        inner.className = 'flip-inner';
-        inner.appendChild(lazyImg(base + f, p.title));
-        cell.appendChild(inner);
+        cell.appendChild(lazyImg(base + f, p.title));
         wrap2.appendChild(cell);
       });
       container.appendChild(wrap2);
@@ -1502,7 +1498,7 @@ const TW_LINES = [
   "graphic designer\nbased in seoul.",
   "working with type,\nimage, and material.",
   "available for commissions\nfrom june 2026.",
-  "kwonkihun-kiki.github.io/portfolio",
+  "kwonkihun-kiki.github.io/web",
   "99liner.\nseoul-based.",
 ];
 let twIndex = 0, twActive = false, twTO = null, twCTO = null;
