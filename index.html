@@ -140,17 +140,18 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: start;
-    grid-auto-rows: auto;
+  }
+  .archive-col { display: flex; flex-direction: column; }
+  .archive-empty {
+    height: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--dim); min-height: 200px;
   }
   .archive-item { padding: 16px; }
   .archive-thumb {
-    width: 100%; margin-bottom: 16px;
-    overflow: hidden; aspect-ratio: 4/3;
-    display: flex; align-items: center; justify-content: center;
-    background: #f7f7f7;
+    width: 100%; margin-bottom: 16px; overflow: hidden;
   }
   .archive-thumb img {
-    width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.35s ease;
+    width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s ease;
   }
   .archive-thumb img.loaded { opacity: 1; }
   .archive-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px; }
@@ -667,7 +668,16 @@ PROJECTS.forEach((p, i) => {
 
 // ── 아카이브 렌더링 ──
 const archiveView = document.getElementById('archive-view');
-PROJECTS.forEach(p => {
+
+// 좌우 컬럼 생성
+const colLeft  = document.createElement('div');
+const colRight = document.createElement('div');
+colLeft.className  = 'archive-col';
+colRight.className = 'archive-col';
+archiveView.appendChild(colLeft);
+archiveView.appendChild(colRight);
+
+PROJECTS.forEach((p, i) => {
   const div = document.createElement('div');
   div.className = 'archive-item';
   div.id = 'arc-' + p.id;
@@ -689,7 +699,9 @@ PROJECTS.forEach(p => {
       </div>
     </div>`;
   div.insertBefore(thumbDiv, div.firstChild);
-  archiveView.appendChild(div);
+
+  // 홀수: 왼쪽, 짝수: 오른쪽
+  (i % 2 === 0 ? colLeft : colRight).appendChild(div);
 });
 
 // ── 상세뷰 렌더링 함수 ──
