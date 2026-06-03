@@ -136,14 +136,6 @@
   .works-right::-webkit-scrollbar { display: none; }
 
   /* ── 아카이브 뷰 ── */
-  #archive-view {
-    columns: 2;
-    column-gap: 0;
-  }
-  #archive-view .archive-item {
-    break-inside: avoid;
-    padding: 12px;
-  }
   .archive-empty {
     height: 100%; display: flex; align-items: center; justify-content: center;
     font-size: 11px; color: var(--dim); min-height: 200px;
@@ -198,7 +190,8 @@
   .layout-confessions .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
   .layout-confessions .d-img-wrap .img-hover {
-    position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s;
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important;
   }
   .layout-confessions .d-img-wrap:hover .img-base { opacity: 0 !important; }
   .layout-confessions .d-img-wrap:hover .img-hover { opacity: 1 !important; }
@@ -209,10 +202,27 @@
   .layout-hover .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-hover .d-img-wrap img.loaded { opacity: 1; }
   .layout-hover .d-img-wrap .img-hover {
-    position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s;
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important;
   }
   .layout-hover .d-img-wrap:hover .img-base { opacity: 0 !important; }
   .layout-hover .d-img-wrap:hover .img-hover { opacity: 1 !important; }
+
+  /* bds_custom: hover쌍 5열 2줄 + 나머지 2열 */
+  .layout-bds-top { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 4px; }
+  .layout-bds-top .d-img-wrap { background: #f3f3f3; position: relative; overflow: hidden; }
+  .layout-bds-top .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-bds-top .d-img-wrap img.loaded { opacity: 1; }
+  .layout-bds-top .d-img-wrap .img-hover {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important;
+  }
+  .layout-bds-top .d-img-wrap:hover .img-base { opacity: 0 !important; }
+  .layout-bds-top .d-img-wrap:hover .img-hover { opacity: 1 !important; }
+  .layout-bds-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .layout-bds-bottom .d-img-wrap { background: #f3f3f3; }
+  .layout-bds-bottom .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-bds-bottom .d-img-wrap img.loaded { opacity: 1; }
 
   /* gorillas: 2열 (이미지 쌍) */
   .layout-gorillas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -412,7 +422,7 @@ const PROJECTS = [
     title: 'BDS Archive',
     year: '2026',
     type: 'Identity',
-    layout: 'bds',
+    layout: 'bds_custom',
     images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg'],
     hover:  [['01.jpg','01-1.jpg'],['02.jpg','02-1.jpg'],['03.jpg','03-1.jpg'],
              ['04.jpg','04-1.jpg'],['05.jpg','05-1.jpg'],['06.jpg','06-1.jpg']]
@@ -423,7 +433,7 @@ const PROJECTS = [
     title: 'Jumble Seoul 1',
     year: '2026',
     type: 'Identity',
-    layout: 'default',
+    layout: 'grid2',
     images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg']
   },
   {
@@ -432,7 +442,7 @@ const PROJECTS = [
     title: 'Jumble Seoul 2',
     year: '2026',
     type: 'Identity',
-    layout: 'default',
+    layout: 'grid2',
     images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg']
   },
   {
@@ -532,7 +542,7 @@ const PROJECTS = [
     year: '2022',
     type: 'Print',
     layout: 'grid2',
-    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg']
+    images: ['02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg']
   },
   {
     id: 'p09',
@@ -683,40 +693,42 @@ function renderDetail(p) {
 
   const base = './images/works/' + p.folder + '/';
 
-  if (p.layout === 'default' || p.layout === 'bds') {
-    // bds는 hover 스왑 포함하되, 일단 세로 나열 (hover CSS가 처리)
-    const wrap = document.createElement('div');
-
-    if (p.layout === 'bds' && p.hover) {
-      wrap.className = 'layout-hover'; // hover 레이아웃 재사용
-      p.hover.forEach(([b, h]) => {
-        const cell = document.createElement('div');
-        cell.className = 'd-img-wrap';
-        const imgBase  = lazyImg(base + b, p.title, 'img-base');
-        const imgHover = lazyImg(base + h, p.title, 'img-hover');
-        imgHover.classList.add('loaded'); // hover img는 미리 로드 트리거
-        cell.appendChild(imgBase);
-        cell.appendChild(imgHover);
-        wrap.appendChild(cell);
-      });
-      // 마지막 이미지 (hover 쌍 없는 것)
-      if (p.images && p.images.length > p.hover.length) {
-        p.images.slice(p.hover.length).forEach(f => {
-          const cell = document.createElement('div');
-          cell.className = 'd-img-wrap';
-          cell.appendChild(lazyImg(base + f, p.title));
-          wrap.appendChild(cell);
-        });
-      }
-    } else {
-      wrap.className = 'layout-default';
-      (p.images || []).forEach(f => {
+  if (p.layout === 'bds_custom') {
+    // BDS: hover 쌍 → 5열 2줄, 나머지 → 2열
+    const topWrap = document.createElement('div');
+    topWrap.className = 'layout-bds-top';
+    (p.hover || []).forEach(([b, h]) => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      const imgBase  = lazyImg(base + b, p.title, 'img-base');
+      const imgHover = lazyImg(base + h, p.title, 'img-hover');
+      cell.appendChild(imgBase);
+      cell.appendChild(imgHover);
+      topWrap.appendChild(cell);
+    });
+    container.appendChild(topWrap);
+    const extra = (p.images || []).slice((p.hover || []).length);
+    if (extra.length) {
+      const botWrap = document.createElement('div');
+      botWrap.className = 'layout-bds-bottom';
+      extra.forEach(f => {
         const cell = document.createElement('div');
         cell.className = 'd-img-wrap';
         cell.appendChild(lazyImg(base + f, p.title));
-        wrap.appendChild(cell);
+        botWrap.appendChild(cell);
       });
+      container.appendChild(botWrap);
     }
+
+  } else if (p.layout === 'default') {
+    const wrap = document.createElement('div');
+    wrap.className = 'layout-default';
+    (p.images || []).forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      cell.appendChild(lazyImg(base + f, p.title));
+      wrap.appendChild(cell);
+    });
     container.appendChild(wrap);
 
   } else if (p.layout === 'grid2') {
