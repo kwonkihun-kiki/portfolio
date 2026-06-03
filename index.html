@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kihun Kwon</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --fg: #000;
+    --bg: #fff;
+    --muted: #aaa;
+    --dim: #d8d8d8;
+    --hover-bg: #f7f7f7;
+  }
+
+  *, *::before, *::after { cursor: none !important; }
+
+  /* ── 커스텀 커서 ── */
+  #cursor {
+    position: fixed; top: 0; left: 0;
+    width: 7px; height: 7px;
+    background: #000; border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.14s ease, height 0.14s ease, background 0.14s ease, border-radius 0.14s ease;
+    will-change: transform;
+  }
+  #cursor.on-link { width: 26px; height: 26px; background: transparent; border: 0.5px solid #000; }
+  #cursor.on-link-active { width: 20px; height: 20px; background: #000; border: none; }
+
+  /* ── 좌표 이스터에그 ── */
+  #coords {
+    position: fixed; top: 0; left: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: #bbb; letter-spacing: 0.05em;
+    pointer-events: none; z-index: 9998;
+    opacity: 0; transition: opacity 0.5s ease; white-space: nowrap;
+  }
+  #coords.visible { opacity: 1; }
+
+  /* ── 타이핑 이스터에그 ── */
+  #typewriter-overlay {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; z-index: 8000;
+    opacity: 0; transition: opacity 0.25s ease;
+  }
+  #typewriter-overlay.show { opacity: 1; }
+  #typewriter-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(13px, 1.5vw, 17px); font-weight: 400;
+    color: #000; letter-spacing: 0.01em; line-height: 1.75;
+    text-align: center; max-width: 460px; padding: 0 32px; white-space: pre-wrap;
+  }
+  #typewriter-text::after { content: '|'; display: inline; animation: blink 0.75s step-end infinite; color: var(--muted); }
+  #typewriter-text.done::after { display: none; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── 기본 ── */
+  html, body {
+    background: var(--bg); color: var(--fg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; line-height: 1.6; font-weight: 400;
+    height: 100vh; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { display: flex; flex-direction: column; }
+  a { color: inherit; text-decoration: none; }
+
+  /* ── NAV ── */
+  nav.topnav {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 16px 24px 14px; flex-shrink: 0; border-bottom: 0.5px solid #000;
+  }
+  nav.topnav .name { font-size: 12px; font-weight: 500; letter-spacing: 0.01em; }
+  .kk-trigger { display: inline-block; }
+  nav.topnav .links { display: flex; gap: 28px; }
+  nav.topnav .links a { font-size: 11px; color: var(--muted); letter-spacing: 0.02em; }
+  nav.topnav .links a.active { color: var(--fg); }
+  nav.topnav .links a:hover { color: var(--fg); }
+
+  /* ── PAGE ── */
+  main.page { flex: 1; overflow: hidden; display: none; min-height: 0; }
+  main.page.active { display: flex; }
+
+  /* ── HOME ── */
+  #home { flex-direction: column; justify-content: space-between; padding: 40px 24px 24px; }
+  #home .big {
+    font-size: clamp(64px, 13vw, 200px); line-height: 0.9;
+    font-weight: 400; letter-spacing: -0.04em; margin-top: auto; margin-bottom: 6vh;
+  }
+  #home .big .l2 { display: block; }
+  #home .home-img { display: flex; justify-content: center; margin: auto 0; }
+  #home .home-img img {
+    height: clamp(120px, 18vh, 200px); width: auto; display: block;
+    mix-blend-mode: multiply; opacity: 0; transition: opacity 0.4s ease;
+  }
+  #home .home-img img.loaded { opacity: 1; }
+  #home .meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding-top: 20px; }
+  #home .meta .label { font-size: 10px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 8px; }
+  #home .meta .val { font-size: 12px; }
+
+  /* ── WORKS ── */
+  #works { padding: 0; }
+  .works-split { display: grid; grid-template-columns: 1fr 1fr; width: 100%; height: 100%; min-height: 0; }
+
+  .works-list {
+    border-right: 0.5px solid #000; overflow-y: auto;
+    scrollbar-width: none; display: flex; flex-direction: column;
+  }
+  .works-list::-webkit-scrollbar { display: none; }
+
+  .col-head {
+    display: grid; grid-template-columns: 36px 1fr 48px; gap: 12px;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 14px 24px 12px; flex-shrink: 0;
+  }
+  .col-head span:last-child { text-align: right; }
+
+  ol.project-list { list-style: none; }
+  ol.project-list li {
+    display: grid; grid-template-columns: 36px 1fr 48px; gap: 12px;
+    padding: 9px 24px; font-size: 12px; transition: background 0.04s;
+  }
+  ol.project-list li .n { color: var(--dim); font-size: 10px; padding-top: 1px; }
+  ol.project-list li .y { color: var(--muted); font-size: 11px; text-align: right; }
+  ol.project-list li:hover { background: var(--hover-bg); }
+  ol.project-list li.active .t { font-weight: 500; }
+  ol.project-list li.active .n { color: var(--muted); }
+
+  .works-right { overflow-y: auto; scrollbar-width: none; position: relative; }
+  .works-right::-webkit-scrollbar { display: none; }
+
+  /* ── 아카이브 뷰 ── */
+  .archive-empty {
+    height: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--dim); min-height: 200px;
+  }
+  .archive-item { padding: 28px 28px 32px; }
+  .archive-thumb {
+    width: 100%; aspect-ratio: 16/10; background: #f3f3f3; margin-bottom: 16px;
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+  }
+  .archive-thumb img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: none; opacity: 0; transition: opacity 0.35s ease;
+  }
+  .archive-thumb img.loaded { display: block; opacity: 1; }
+  .archive-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px; }
+  .archive-row .a-title { font-size: 13px; font-weight: 500; line-height: 1.3; }
+  .archive-row .a-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; margin-top: 5px; }
+  .archive-row .a-nolink { font-size: 10px; color: var(--dim); white-space: nowrap; }
+
+  /* ── 상세뷰 ── */
+  #detail-view { display: none; padding: 28px 28px 56px; }
+  #detail-view.show { display: block; }
+
+  .detail-back {
+    font-size: 10px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase;
+    margin-bottom: 36px; display: inline-block;
+  }
+  .detail-back:hover { color: var(--fg); }
+  .detail-title { font-size: 24px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 10px; }
+  .detail-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 28px; }
+  .detail-meta { display: grid; grid-template-columns: 72px 1fr; gap: 9px 24px; margin-bottom: 36px; }
+  .detail-meta .dm-l { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 1px; }
+  .detail-meta .dm-v { font-size: 12px; }
+
+  /* 상세뷰 이미지 레이아웃 */
+  #detail-images { width: 100%; }
+
+  /* default: 세로 나열 */
+  .layout-default .d-img-wrap { width: 100%; margin-bottom: 12px; background: #f3f3f3; }
+  .layout-default .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-default .d-img-wrap img.loaded { opacity: 1; }
+
+  /* grid2: 2열 그리드 */
+  .layout-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .layout-grid2 .d-img-wrap { background: #f3f3f3; }
+  .layout-grid2 .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-grid2 .d-img-wrap img.loaded { opacity: 1; }
+
+  /* confessions: 4열 */
+  .layout-confessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .layout-confessions .d-img-wrap { background: #f3f3f3; position: relative; overflow: hidden; }
+  .layout-confessions .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
+  .layout-confessions .d-img-wrap .img-hover {
+    position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s;
+  }
+  .layout-confessions .d-img-wrap:hover .img-base { opacity: 0 !important; }
+  .layout-confessions .d-img-wrap:hover .img-hover { opacity: 1 !important; }
+
+  /* hover(2열): mechanical fruits, BDS */
+  .layout-hover { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .layout-hover .d-img-wrap { background: #f3f3f3; position: relative; overflow: hidden; }
+  .layout-hover .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-hover .d-img-wrap img.loaded { opacity: 1; }
+  .layout-hover .d-img-wrap .img-hover {
+    position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s;
+  }
+  .layout-hover .d-img-wrap:hover .img-base { opacity: 0 !important; }
+  .layout-hover .d-img-wrap:hover .img-hover { opacity: 1 !important; }
+
+  /* gorillas: 2열 (이미지 쌍) */
+  .layout-gorillas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .layout-gorillas .d-img-wrap { background: #f3f3f3; }
+  .layout-gorillas .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-gorillas .d-img-wrap img.loaded { opacity: 1; }
+
+  /* reconstruction: 그래픽(좌) + 사진(우) 나란히 */
+  .layout-reconstruction { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+  .layout-reconstruction .recon-col { display: flex; flex-direction: column; gap: 8px; }
+  .layout-reconstruction .d-img-wrap { background: #f3f3f3; }
+  .layout-reconstruction .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-reconstruction .d-img-wrap img.loaded { opacity: 1; }
+  .layout-reconstruction .recon-label {
+    font-size: 10px; color: var(--muted); letter-spacing: 0.07em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  /* ── CERAMIC ── */
+  #ceramic {
+    flex-direction: column; align-items: flex-start;
+    justify-content: space-between; padding: 40px 24px 24px;
+  }
+  #ceramic .ceramic-label { font-size: 10px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 12px; }
+  #ceramic .ceramic-title {
+    font-size: clamp(48px, 9vw, 140px); font-weight: 400;
+    letter-spacing: -0.035em; line-height: 0.92; margin-top: auto; margin-bottom: 6vh;
+  }
+  #ceramic .ceramic-title .l2 { display: block; }
+  #ceramic .ceramic-footer { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding-top: 20px; }
+  #ceramic .ceramic-footer .label { font-size: 10px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 8px; }
+  #ceramic .ceramic-footer .val { font-size: 12px; }
+
+  /* ── INFO ── */
+  #info { flex-direction: column; overflow: hidden; }
+  .info-tabs { display: flex; gap: 28px; padding: 14px 24px 12px; border-bottom: 0.5px solid #000; flex-shrink: 0; }
+  .info-tabs a { font-size: 11px; color: var(--muted); letter-spacing: 0.02em; }
+  .info-tabs a.active { color: var(--fg); font-weight: 500; }
+  .info-tabs a:hover { color: var(--fg); }
+  .info-body { flex: 1; overflow-y: auto; padding: 36px 24px 64px; scrollbar-width: none; }
+  .info-body::-webkit-scrollbar { display: none; }
+  .info-body .panel { display: none; }
+  .info-body .panel.active { display: block; }
+  .info-grid { display: grid; grid-template-columns: 140px 1fr; gap: 24px 48px; max-width: 680px; }
+  .info-grid .ig-label { font-size: 10px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; padding-top: 2px; }
+  .info-grid .ig-val { font-size: 12px; }
+  .info-grid .ig-val p + p { margin-top: 0.85em; }
+  .info-grid a { border-bottom: 0.5px solid var(--dim); padding-bottom: 1px; }
+  .info-grid a:hover { border-bottom-color: var(--fg); }
+  .sel-list { max-width: 680px; }
+  .sel-row { display: grid; grid-template-columns: 52px 1fr 100px; gap: 20px; padding: 9px 0; }
+  .sel-row.hd { font-size: 10px; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; padding-bottom: 10px; border-bottom: 0.5px solid #000; margin-bottom: 2px; }
+  .sel-row .yr { font-size: 11px; color: var(--muted); }
+  .sel-row .tt { font-size: 12px; }
+  .sel-row .tp { font-size: 11px; color: var(--muted); text-align: right; }
+
+  @media (max-width: 800px) {
+    html, body { height: auto; overflow: auto; }
+    main.page { height: auto; overflow: visible; }
+    .works-split { grid-template-columns: 1fr; }
+    .works-list { border-right: none; max-height: 40vh; }
+    .works-right { min-height: 60vh; }
+    #home .meta, #ceramic .ceramic-footer { grid-template-columns: 1fr; gap: 16px; }
+    .info-grid { grid-template-columns: 1fr; gap: 6px 0; }
+    .info-grid .ig-label { margin-top: 18px; }
+    .layout-confessions { grid-template-columns: repeat(2, 1fr); }
+    .layout-grid2, .layout-hover, .layout-gorillas, .layout-reconstruction { grid-template-columns: 1fr; }
+    .layout-reconstruction { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="coords"></div>
+<div id="typewriter-overlay"><div id="typewriter-text"></div></div>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="name"><span class="kk-trigger">Kihun Kwon</span></div>
+  <div class="links">
+    <a data-page="home" class="active">Home</a>
+    <a data-page="works">Works</a>
+    <a data-page="ceramic">Ceramic</a>
+    <a data-page="info">Info</a>
+  </div>
+</nav>
+
+<!-- HOME -->
+<main class="page active" id="home">
+  <div class="home-img">
+    <img data-src="./images/profile.jpg" alt="Kihun Kwon">
+  </div>
+  <div class="meta">
+    <div><div class="label">Based in</div><div class="val">Seoul, KR</div></div>
+    <div><div class="label">Field</div><div class="val">Graphic Design,<br>Editorial, Identity</div></div>
+    <div><div class="label">Available</div><div class="val">For commissions<br>from June 2026</div></div>
+  </div>
+</main>
+
+<!-- WORKS: JS로 렌더링 -->
+<main class="page" id="works">
+  <div class="works-split">
+    <div class="works-list">
+      <div class="col-head">
+        <span>No.</span><span>Title</span><span style="text-align:right">Year</span>
+      </div>
+      <ol class="project-list" id="project-list"></ol>
+    </div>
+    <div class="works-right" id="works-right">
+      <div id="archive-view"></div>
+      <div id="detail-view">
+        <a class="detail-back" id="detail-back">← Back</a>
+        <div class="detail-title" id="d-title">—</div>
+        <div class="detail-sub" id="d-sub">—</div>
+        <div class="detail-meta">
+          <div class="dm-l">Year</div><div class="dm-v" id="d-year">—</div>
+          <div class="dm-l">Type</div><div class="dm-v" id="d-type">—</div>
+        </div>
+        <div id="detail-images"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- CERAMIC -->
+<main class="page" id="ceramic">
+  <div class="ceramic-label">Ceramic</div>
+  <div class="ceramic-title">Coming<span class="l2">Soon</span></div>
+  <div class="ceramic-footer">
+    <div><div class="label">Category</div><div class="val">Wheel-thrown<br>Handbuilt</div></div>
+    <div><div class="label">Material</div><div class="val">Stoneware,<br>Porcelain</div></div>
+    <div><div class="label">Status</div><div class="val">Shop in development</div></div>
+  </div>
+</main>
+
+<!-- INFO -->
+<main class="page" id="info">
+  <div class="info-tabs">
+    <a data-tab="information" class="active">Information</a>
+    <a data-tab="selected">Selected Work</a>
+  </div>
+  <div class="info-body">
+    <div class="panel active" id="panel-information">
+      <div class="info-grid">
+        <div class="ig-label">Bio</div>
+        <div class="ig-val">
+          <p>Kihun Kwon is a graphic designer based in Seoul. His practice spans editorial, identity, and printed matter, with an interest in how typography, image, and material together hold a story.</p>
+          <p>He works across self-initiated and commissioned projects, often collaborating with artists, small studios, and independent publishers.</p>
+        </div>
+        <div class="ig-label">Education</div>
+        <div class="ig-val">
+          <p>2018–2025<br>Bachelor of Visual Communication Design<br>Kookmin University, Seoul</p>
+          <p>2022–2023<br>Strate École de Design Lyon<br>(1 semester exchange)</p>
+        </div>
+        <div class="ig-label">Practice</div>
+        <div class="ig-val">
+          <p>Editorial Design<br>Visual Identity<br>Print &amp; Poster<br>Type &amp; Image</p>
+        </div>
+        <div class="ig-label">Experience</div>
+        <div class="ig-val">
+          <p>IAMCOMPANY — Contents Team<br>contents planning, graphic design, branding, Instagram management</p>
+          <p>Print Shop Manager — 415-1 (@chulryucksil)</p>
+          <p>Polyteru — Freelance Designer for T-shirt Graphics</p>
+          <p>17th Kookmin University Design Exhibition<br>2023–2082 Calendar, Project Concept Development</p>
+          <p>Music Video — Lill Cherry &amp; GOLDBUUDA, PD Assistant</p>
+          <p>Exhibition — NTND, Posters</p>
+        </div>
+        <div class="ig-label">Contact</div>
+        <div class="ig-val">
+          <p>
+            <a href="mailto:roma12053@gmail.com">roma12053@gmail.com</a><br>
+            <a href="https://instagram.com/kwonkihun" target="_blank">@kwonkihun</a>
+          </p>
+        </div>
+        <div class="ig-label">CV</div>
+        <div class="ig-val"><p><a href="./cv/kwonkihun_cv.pdf" target="_blank">Download PDF</a></p></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-selected">
+      <div class="sel-list" id="sel-list"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════
+// PROJECTS 배열 — 여기만 수정하면 됨
+// layout: 'default' | 'grid2' | 'confessions' | 'hover' | 'gorillas' | 'reconstruction' | 'bds'
+// images: 상세뷰에 표시할 파일명 배열 (thumb 제외)
+// hover: 호버 스왑 쌍 [ [base, hover], ... ] (confessions/hover/bds용)
+// ═══════════════════════════════════════════════════
+const PROJECTS = [
+  {
+    id: 'p15',
+    folder: 'p15_BDS',
+    title: 'BDS Archive',
+    year: '2026',
+    type: 'Identity',
+    layout: 'bds',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg'],
+    hover:  [['01.jpg','01-1.jpg'],['02.jpg','02-1.jpg'],['03.jpg','03-1.jpg'],
+             ['04.jpg','04-1.jpg'],['05.jpg','05-1.jpg'],['06.jpg','06-1.jpg']]
+  },
+  {
+    id: 'p13',
+    folder: 'p13_jumble_1',
+    title: 'Jumble Seoul 1',
+    year: '2026',
+    type: 'Identity',
+    layout: 'default',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg']
+  },
+  {
+    id: 'p14',
+    folder: 'p14_jumble_2',
+    title: 'Jumble Seoul 2',
+    year: '2026',
+    type: 'Identity',
+    layout: 'default',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg']
+  },
+  {
+    id: 'p17',
+    folder: 'p17_apes',
+    title: 'apes',
+    year: '2025',
+    type: 'Editorial',
+    layout: 'default',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg']
+  },
+  {
+    id: 'p01',
+    folder: 'p01_meatball',
+    title: 'meatball',
+    year: '2024',
+    type: 'Poster',
+    layout: 'grid2',
+    images: ['01.png','02.png','03.png','04.png','05.png','06.png']
+  },
+  {
+    id: 'p02',
+    folder: 'p02_confessions',
+    title: 'confessions: 12 sinners',
+    year: '2024',
+    type: 'Editorial',
+    layout: 'confessions',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg',
+             '07.jpg','08.jpg','09.jpg','10.jpg','11.jpg','12.jpg'],
+    hover:  [['01.jpg','01-1.jpg'],['02.jpg','02-1.jpg'],['03.jpg','03-1.jpg'],
+             ['04.jpg','04-1.jpg'],['05.jpg','05-1.jpg'],['06.jpg','06-1.jpg'],
+             ['07.jpg','07-1.jpg'],['08.jpg','08-1.jpg'],['09.jpg','09-1.jpg'],
+             ['10.jpg','10-1.jpg'],['11.jpg','11-1.jpg'],['12.jpg','12-1.jpg']],
+    images2: ['13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg',
+              '19.jpg','20.jpg','21.jpg','22.jpg','23.jpg','24.jpg']
+  },
+  {
+    id: 'p04',
+    folder: 'p04_mechanical_fruits',
+    title: 'mechanical fruits',
+    year: '2023',
+    type: 'Print',
+    layout: 'hover',
+    images: ['01.png','02.png','03.png'],
+    hover:  [['01.png','01-1.png'],['02.png','02-1.png'],['03.png','03-1.png']]
+  },
+  {
+    id: 'p05',
+    folder: 'p05_Imademyfriendsintogorillas',
+    title: 'I made my friends into gorillas',
+    year: '2023',
+    type: 'Book',
+    layout: 'gorillas',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.png','09.PNG']
+  },
+  {
+    id: 'p06',
+    folder: 'p06_415-1',
+    title: '415-1',
+    year: '2023',
+    type: 'Identity',
+    layout: 'default',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg']
+  },
+  {
+    id: 'p18',
+    folder: 'p18_07.09.2079',
+    title: '07.09.2079',
+    year: '2023',
+    type: 'Identity',
+    layout: 'default',
+    images: ['01.jpg']
+  },
+  {
+    id: 'p16',
+    folder: 'p16_postcard',
+    title: 'Postcard',
+    year: '2023',
+    type: 'Print',
+    layout: 'grid2',
+    images: ['01.png','02.png','03.png','04.png','05.png','06.png']
+  },
+  {
+    id: 'p07',
+    folder: 'p07_hoonies_cookies',
+    title: 'Hoonies cookies',
+    year: '2022',
+    type: 'Identity',
+    layout: 'default',
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg',
+             '07.jpg','08.jpg','09.jpg','10.jpg','11.jpg','12.jpg']
+  },
+  {
+    id: 'p08',
+    folder: 'p08_nondry',
+    title: 'Nondry',
+    year: '2022',
+    type: 'Print',
+    layout: 'grid2',
+    images: ['01.png','02.png','03.png','04.png','05.png','06.png','07.png','08.png']
+  },
+  {
+    id: 'p09',
+    folder: 'p09_sky_samples',
+    title: 'sky samples',
+    year: '2022',
+    type: 'Editorial',
+    layout: 'default',
+    images: ['01.png','02.png','03.png','04.png','05.png','06.png','07.png','08.png','09.png']
+  },
+  {
+    id: 'p10',
+    folder: 'p10_recounstruction',
+    title: 'reconstruction',
+    year: '2022',
+    type: 'Print',
+    layout: 'reconstruction',
+    // graphic: 01~09, photo: 10~19 (파일명 그대로)
+    images:  ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg'],
+    images2: ['10.JPG','11.JPG','12.JPG','13.JPG','14.JPG','15.JPG','16.JPG','17.JPG','18.JPG','19.JPG']
+  },
+  {
+    id: 'p11',
+    folder: 'p11_alice',
+    title: 'alice',
+    year: '2021',
+    type: 'Book',
+    layout: 'default',
+    images: ['01.png','02.png','03.png','04.png','05.png']
+  },
+  {
+    id: 'p12',
+    folder: 'p12_happy_tiger',
+    title: 'happy tiger',
+    year: '2021',
+    type: 'Print',
+    layout: 'default',
+    images: ['01.jpg','02.jpg','03.jpg']
+  },
+];
+
+// 연도 내림차순 자동 정렬
+PROJECTS.sort((a, b) => b.year - a.year);
+
+// 경로 헬퍼
+function imgPath(folder, file) {
+  return './images/works/' + folder + '/' + file;
+}
+function thumbPath(folder, ext) {
+  return './images/works/' + folder + '/thumb.' + (ext || 'jpg');
+}
+
+// ── Lazy Load (IntersectionObserver) ──
+const lazyObserver = new IntersectionObserver((entries, obs) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const img = entry.target;
+    const src = img.dataset.src;
+    if (!src) return;
+    img.src = src;
+    img.onload  = () => img.classList.add('loaded');
+    img.onerror = () => {};
+    obs.unobserve(img);
+  });
+}, { root: null, rootMargin: '300px', threshold: 0 });
+
+function lazyImg(src, alt, extraClass) {
+  const img = document.createElement('img');
+  img.dataset.src = src;
+  img.alt = alt || '';
+  if (extraClass) img.classList.add(extraClass);
+  lazyObserver.observe(img);
+  return img;
+}
+
+// ── Works 리스트 렌더링 ──
+const projectList = document.getElementById('project-list');
+PROJECTS.forEach((p, i) => {
+  const li = document.createElement('li');
+  li.dataset.id = p.id;
+  li.innerHTML = `<span class="n">${String(i + 1).padStart(2, '0')}</span><span class="t">${p.title}</span><span class="y">${p.year}</span>`;
+  projectList.appendChild(li);
+});
+
+// ── 아카이브 렌더링 ──
+const archiveView = document.getElementById('archive-view');
+PROJECTS.forEach(p => {
+  const div = document.createElement('div');
+  div.className = 'archive-item';
+  div.id = 'arc-' + p.id;
+
+  // thumb 확장자 추론 (폴더명 기반)
+  const thumbExt = p.folder.includes('nondry') ? 'JPG' :
+                   p.folder.includes('reconstruction') ? 'jpg' : 'jpg';
+  // png thumb인 프로젝트들
+  const pngThumbs = ['p01_meatball','p05_Imademyfriendsintogorillas','p09_sky_samples',
+                     'p11_alice','p16_postcard'];
+  const tExt = pngThumbs.includes(p.folder) ? 'png' : 'jpg';
+  // p08 nondry thumb.JPG 예외
+  const tFile = p.folder === 'p08_nondry' ? 'thumb.JPG' : 'thumb.' + tExt;
+
+  const thumbDiv = document.createElement('div');
+  thumbDiv.className = 'archive-thumb';
+  const tImg = lazyImg('./images/works/' + p.folder + '/' + tFile, p.title);
+  thumbDiv.appendChild(tImg);
+
+  div.innerHTML = `
+    <div class="archive-row">
+      <div>
+        <div class="a-title">${p.title}</div>
+        <div class="a-sub">${p.year} — ${p.type}</div>
+      </div>
+    </div>`;
+  div.insertBefore(thumbDiv, div.firstChild);
+  archiveView.appendChild(div);
+});
+
+// ── 상세뷰 렌더링 함수 ──
+function renderDetail(p) {
+  const container = document.getElementById('detail-images');
+  container.innerHTML = '';
+
+  const base = './images/works/' + p.folder + '/';
+
+  if (p.layout === 'default' || p.layout === 'bds') {
+    // bds는 hover 스왑 포함하되, 일단 세로 나열 (hover CSS가 처리)
+    const wrap = document.createElement('div');
+
+    if (p.layout === 'bds' && p.hover) {
+      wrap.className = 'layout-hover'; // hover 레이아웃 재사용
+      p.hover.forEach(([b, h]) => {
+        const cell = document.createElement('div');
+        cell.className = 'd-img-wrap';
+        const imgBase  = lazyImg(base + b, p.title, 'img-base');
+        const imgHover = lazyImg(base + h, p.title, 'img-hover');
+        imgHover.classList.add('loaded'); // hover img는 미리 로드 트리거
+        cell.appendChild(imgBase);
+        cell.appendChild(imgHover);
+        wrap.appendChild(cell);
+      });
+      // 마지막 이미지 (hover 쌍 없는 것)
+      if (p.images && p.images.length > p.hover.length) {
+        p.images.slice(p.hover.length).forEach(f => {
+          const cell = document.createElement('div');
+          cell.className = 'd-img-wrap';
+          cell.appendChild(lazyImg(base + f, p.title));
+          wrap.appendChild(cell);
+        });
+      }
+    } else {
+      wrap.className = 'layout-default';
+      (p.images || []).forEach(f => {
+        const cell = document.createElement('div');
+        cell.className = 'd-img-wrap';
+        cell.appendChild(lazyImg(base + f, p.title));
+        wrap.appendChild(cell);
+      });
+    }
+    container.appendChild(wrap);
+
+  } else if (p.layout === 'grid2') {
+    const wrap = document.createElement('div');
+    wrap.className = 'layout-grid2';
+    (p.images || []).forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      cell.appendChild(lazyImg(base + f, p.title));
+      wrap.appendChild(cell);
+    });
+    container.appendChild(wrap);
+
+  } else if (p.layout === 'confessions') {
+    // 1~12: 4열 hover 쌍
+    const wrap1 = document.createElement('div');
+    wrap1.className = 'layout-confessions';
+    (p.hover || []).forEach(([b, h]) => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      const imgBase  = lazyImg(base + b, p.title, 'img-base');
+      const imgHover = lazyImg(base + h, p.title, 'img-hover');
+      cell.appendChild(imgBase);
+      cell.appendChild(imgHover);
+      wrap1.appendChild(cell);
+    });
+    container.appendChild(wrap1);
+
+    // 13~24: 4열 일반
+    if (p.images2 && p.images2.length) {
+      const gap = document.createElement('div');
+      gap.style.height = '24px';
+      container.appendChild(gap);
+      const wrap2 = document.createElement('div');
+      wrap2.className = 'layout-confessions';
+      p.images2.forEach(f => {
+        const cell = document.createElement('div');
+        cell.className = 'd-img-wrap';
+        cell.appendChild(lazyImg(base + f, p.title));
+        wrap2.appendChild(cell);
+      });
+      container.appendChild(wrap2);
+    }
+
+  } else if (p.layout === 'hover') {
+    const wrap = document.createElement('div');
+    wrap.className = 'layout-hover';
+    (p.hover || []).forEach(([b, h]) => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      const imgBase  = lazyImg(base + b, p.title, 'img-base');
+      const imgHover = lazyImg(base + h, p.title, 'img-hover');
+      cell.appendChild(imgBase);
+      cell.appendChild(imgHover);
+      wrap.appendChild(cell);
+    });
+    container.appendChild(wrap);
+
+  } else if (p.layout === 'gorillas') {
+    const wrap = document.createElement('div');
+    wrap.className = 'layout-gorillas';
+    (p.images || []).forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      cell.appendChild(lazyImg(base + f, p.title));
+      wrap.appendChild(cell);
+    });
+    container.appendChild(wrap);
+
+  } else if (p.layout === 'reconstruction') {
+    const wrap = document.createElement('div');
+    wrap.className = 'layout-reconstruction';
+
+    const col1 = document.createElement('div');
+    col1.className = 'recon-col';
+    const lbl1 = document.createElement('div');
+    lbl1.className = 'recon-label';
+    lbl1.textContent = 'Graphic';
+    col1.appendChild(lbl1);
+    (p.images || []).forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      cell.appendChild(lazyImg(base + f, p.title));
+      col1.appendChild(cell);
+    });
+
+    const col2 = document.createElement('div');
+    col2.className = 'recon-col';
+    const lbl2 = document.createElement('div');
+    lbl2.className = 'recon-label';
+    lbl2.textContent = 'Photo';
+    col2.appendChild(lbl2);
+    (p.images2 || []).forEach(f => {
+      const cell = document.createElement('div');
+      cell.className = 'd-img-wrap';
+      cell.appendChild(lazyImg(base + f, p.title));
+      col2.appendChild(cell);
+    });
+
+    wrap.appendChild(col1);
+    wrap.appendChild(col2);
+    container.appendChild(wrap);
+  }
+}
+
+// ── Works 인터랙션 ──
+const worksRight   = document.getElementById('works-right');
+const detailView   = document.getElementById('detail-view');
+const listItems    = () => Array.from(document.querySelectorAll('#project-list li'));
+const archiveItems = () => Array.from(document.querySelectorAll('.archive-item'));
+
+function showArchive(scrollToId) {
+  archiveView.style.display = '';
+  detailView.classList.remove('show');
+  requestAnimationFrame(() => {
+    if (scrollToId) {
+      const t = document.getElementById('arc-' + scrollToId);
+      if (t) worksRight.scrollTop = t.offsetTop;
+    } else {
+      worksRight.scrollTop = 0;
+    }
+  });
+}
+
+// 좌측 리스트 클릭
+projectList.addEventListener('click', e => {
+  const li = e.target.closest('li');
+  if (!li) return;
+  const id = li.dataset.id;
+  listItems().forEach(x => x.classList.remove('active'));
+  li.classList.add('active');
+  if (detailView.classList.contains('show')) { showArchive(id); return; }
+  const target = document.getElementById('arc-' + id);
+  if (target) worksRight.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+});
+
+// 우측 스크롤 → 좌측 active 동기화
+let scrollTicking = false;
+worksRight.addEventListener('scroll', () => {
+  if (scrollTicking || detailView.classList.contains('show')) return;
+  scrollTicking = true;
+  requestAnimationFrame(() => {
+    const items = archiveItems();
+    if (!items.length) { scrollTicking = false; return; }
+    const threshold = worksRight.scrollTop + worksRight.clientHeight * 0.25;
+    let current = items[0].id.replace('arc-', '');
+    for (const item of items) {
+      if (item.offsetTop <= threshold) current = item.id.replace('arc-', '');
+      else break;
+    }
+    listItems().forEach(li => {
+      const active = li.dataset.id === current;
+      li.classList.toggle('active', active);
+      if (active) li.scrollIntoView({ block: 'nearest' });
+    });
+    scrollTicking = false;
+  });
+});
+
+// 아카이브 아이템 클릭 → 상세뷰
+archiveView.addEventListener('click', e => {
+  const item = e.target.closest('.archive-item');
+  if (!item) return;
+  const id = item.id.replace('arc-', '');
+  const p  = PROJECTS.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('d-title').textContent = p.title;
+  document.getElementById('d-sub').textContent   = p.year + ' — ' + p.type;
+  document.getElementById('d-year').textContent  = p.year;
+  document.getElementById('d-type').textContent  = p.type;
+
+  renderDetail(p);
+
+  archiveView.style.display = 'none';
+  detailView.classList.add('show');
+  worksRight.scrollTop = 0;
+  listItems().forEach(li => li.classList.toggle('active', li.dataset.id === id));
+});
+
+document.getElementById('detail-back').addEventListener('click', () => showArchive());
+
+// ── 홈 이미지 lazy load ──
+const homeImg = document.querySelector('#home .home-img img');
+if (homeImg) {
+  homeImg.src = homeImg.dataset.src;
+  homeImg.onload = () => homeImg.classList.add('loaded');
+}
+
+// ── Page nav ──
+document.querySelectorAll('nav.topnav a[data-page]').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelectorAll('nav.topnav a[data-page]').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('main.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(a.dataset.page).classList.add('active');
+  });
+});
+
+// ── Info Selected Work 렌더링 ──
+const selList = document.getElementById('sel-list');
+selList.innerHTML = `<div class="sel-row hd"><span>Year</span><span>Title</span><span style="text-align:right">Type</span></div>`;
+PROJECTS.forEach(p => {
+  const row = document.createElement('div');
+  row.className = 'sel-row';
+  row.innerHTML = `<span class="yr">${p.year}</span><span class="tt">${p.title}</span><span class="tp">${p.type}</span>`;
+  selList.appendChild(row);
+});
+
+// ── 커스텀 커서 ──
+const cursorEl = document.getElementById('cursor');
+const coordsEl = document.getElementById('coords');
+let coordTimer = null;
+document.addEventListener('mousemove', e => {
+  const mx = e.clientX, my = e.clientY;
+  cursorEl.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
+  coordsEl.classList.remove('visible');
+  clearTimeout(coordTimer);
+  coordTimer = setTimeout(() => {
+    coordsEl.textContent = `${String(mx).padStart(4,'0')} / ${String(my).padStart(4,'0')}`;
+    coordsEl.style.transform = `translate(${mx + 14}px, ${my + 14}px)`;
+    coordsEl.classList.add('visible');
+  }, 1000);
+});
+document.addEventListener('mouseleave', () => {
+  cursorEl.style.opacity = '0';
+  clearTimeout(coordTimer);
+  coordsEl.classList.remove('visible');
+});
+document.addEventListener('mouseenter', () => { cursorEl.style.opacity = '1'; });
+document.addEventListener('mouseover', e => {
+  if (e.target.closest('a, li, button, .kk-trigger')) cursorEl.classList.add('on-link');
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('a, li, button, .kk-trigger')) cursorEl.classList.remove('on-link');
+});
+document.addEventListener('mousedown', e => {
+  if (e.target.closest('a, li, button, .kk-trigger')) {
+    cursorEl.classList.remove('on-link');
+    cursorEl.classList.add('on-link-active');
+  }
+});
+document.addEventListener('mouseup', () => cursorEl.classList.remove('on-link-active'));
+
+// ── 타이핑 이스터에그 ──
+const overlay = document.getElementById('typewriter-overlay');
+const twText  = document.getElementById('typewriter-text');
+const TW_LINES = [
+  "graphic designer\nbased in seoul.",
+  "working with type,\nimage, and material.",
+  "available for commissions\nfrom june 2026.",
+  "kwonkihun.netlify.app",
+];
+let twIndex = 0, twActive = false, twTO = null, twCTO = null;
+
+function typeWriter(text, onDone) {
+  twText.classList.remove('done');
+  twText.textContent = '';
+  let i = 0;
+  function next() {
+    if (i < text.length) { twText.textContent += text[i++]; twCTO = setTimeout(next, 38); }
+    else { twText.classList.add('done'); if (onDone) onDone(); }
+  }
+  next();
+}
+function triggerTypewriter() {
+  if (twActive) return;
+  twActive = true;
+  clearTimeout(twTO); clearTimeout(twCTO);
+  overlay.classList.add('show');
+  typeWriter(TW_LINES[twIndex++ % TW_LINES.length], () => {
+    twTO = setTimeout(() => {
+      overlay.classList.remove('show');
+      setTimeout(() => { twActive = false; }, 280);
+    }, 2200);
+  });
+}
+document.querySelectorAll('.kk-trigger').forEach(el => el.addEventListener('click', triggerTypewriter));
+
+// Info Bio Kihun Kwon wrap
+document.querySelectorAll('.ig-val p').forEach(p => {
+  if (p.innerHTML.includes('Kihun Kwon')) {
+    p.innerHTML = p.innerHTML.replace(
+      /Kihun Kwon/g,
+      '<span class="kk-trigger" style="border-bottom:0.5px solid var(--dim);padding-bottom:1px">Kihun Kwon</span>'
+    );
+  }
+});
+document.querySelectorAll('.ig-val .kk-trigger').forEach(el => el.addEventListener('click', triggerTypewriter));
+
+// Info tabs
+document.querySelectorAll('.info-tabs a[data-tab]').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelectorAll('.info-tabs a[data-tab]').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+    document.querySelectorAll('.info-body .panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + a.dataset.tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
