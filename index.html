@@ -197,18 +197,19 @@
   .layout-grid2 .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-grid2 .d-img-wrap img.loaded { opacity: 1; }
 
-  /* confessions: 4열 */
+  /* confessions: 4열 — fade 전환 */
   .layout-confessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; align-items: start; }
   .layout-confessions .d-img-wrap { background: none; position: relative; overflow: hidden; }
   .layout-confessions .d-img-wrap img { width: 100%; height: auto; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
-  .layout-confessions .d-img-wrap .img-base { position: relative; z-index: 1; }
+  .layout-confessions .d-img-wrap .img-base { position: relative; z-index: 1; transition: opacity 0.5s ease; }
   .layout-confessions .d-img-wrap .img-hover {
     position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important; z-index: 2;
+    object-fit: cover; opacity: 0; transition: opacity 0.5s ease; display: block !important; z-index: 2;
   }
-  .layout-confessions .d-img-wrap:hover .img-base { opacity: 0 !important; }
-  .layout-confessions .d-img-wrap:hover .img-hover { opacity: 1 !important; }
+  /* hover 대신 JS로 제어되는 .faded 클래스 사용 */
+  .layout-confessions .d-img-wrap.faded .img-base { opacity: 0 !important; }
+  .layout-confessions .d-img-wrap.faded .img-hover { opacity: 1 !important; }
 
   /* hover(2열): mechanical fruits, BDS */
   .layout-hover { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -322,11 +323,17 @@
     html, body { height: 100%; overflow: hidden; }
     main.page { height: calc(100vh - 45px); overflow: hidden; }
 
-    /* 홈: 세로 스크롤 허용 */
-    #home { overflow-y: auto !important; -webkit-overflow-scrolling: touch; min-height: calc(100vh - 45px); height: auto !important; }
+    /* 홈: display:flex 유지하면서 스크롤 */
+    main.page#home {
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      -webkit-overflow-scrolling: touch !important;
+      height: auto !important;
+      min-height: calc(100vh - 45px) !important;
+    }
 
     /* Misc: 스크롤 허용 */
-    #misc.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    #misc { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 
     /* Ceramic: 스크롤 허용 */
     #ceramic.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -1151,9 +1158,10 @@ function renderDetail(p) {
     container.appendChild(wrap);
 
   } else if (p.layout === 'confessions') {
-    // 1~12: 4열 hover 쌍
+    // 1~12: 4열 fade 쌍
     const wrap1 = document.createElement('div');
     wrap1.className = 'layout-confessions';
+    const fadeCells = [];
     (p.hover || []).forEach(([b, h]) => {
       const cell = document.createElement('div');
       cell.className = 'd-img-wrap';
@@ -1162,8 +1170,29 @@ function renderDetail(p) {
       cell.appendChild(imgBase);
       cell.appendChild(imgHover);
       wrap1.appendChild(cell);
+      fadeCells.push(cell);
     });
     container.appendChild(wrap1);
+
+    // 자동 fade 사이클 — 2.8초마다 랜덤으로 faded 토글
+    if (fadeCells.length) {
+      let fadeTimer = null;
+      function cycleFade() {
+        // 랜덤 셀 하나 선택해서 faded 토글
+        const idx = Math.floor(Math.random() * fadeCells.length);
+        fadeCells[idx].classList.toggle('faded');
+        fadeTimer = setTimeout(cycleFade, 1800 + Math.random() * 2000);
+      }
+      // 이미지 로드 후 시작
+      setTimeout(cycleFade, 1200);
+      // 상세뷰 벗어날 때 정리
+      const backBtn = document.getElementById('detail-back');
+      const origClick = backBtn.onclick;
+      backBtn.addEventListener('click', function onBack() {
+        clearTimeout(fadeTimer);
+        backBtn.removeEventListener('click', onBack);
+      }, { once: true });
+    }
 
     // 13~24: 4열 일반
     if (p.images2 && p.images2.length) {
@@ -1510,6 +1539,7 @@ document.querySelectorAll('.ig-val .kk-trigger').forEach(el => el.addEventListen
 
 
 
+
 // ── MISC 페이지 ──
 (function() {
 
@@ -1553,41 +1583,35 @@ document.querySelectorAll('.ig-val .kk-trigger').forEach(el => el.addEventListen
   var RETURN  = 0.10;
   var DAMP    = 0.78;
 
-  function getImgW() {
-    var vw = window.innerWidth;
-    if (vw <= 480) return 56;
-    if (vw <= 800) return 62;
-    return 72;
-  }
-
   function getLayout() {
-    var vw  = window.innerWidth;
-    var iw  = getImgW();
-    var gap = vw <= 480 ? 8 : 12;
-    var padX = vw <= 480 ? 14 : 20;
-    var padY = vw <= 480 ? 16 : 24;
-    // 한 줄에 몇 개 들어가는지 계산 (화면 너비 기준)
-    var usable = (vw <= 800 ? vw : Math.min(vw, 1200)) - padX * 2;
-    var cols = Math.max(1, Math.floor((usable + gap) / (iw + gap)));
-    return { cols: cols, gap: gap, padX: padX, padY: padY, imgW: iw };
+    var vw   = window.innerWidth;
+    var imgW = vw <= 480 ? 48 : (vw <= 800 ? 58 : 72);
+    var gap  = vw <= 480 ? 10 : 14;
+    var padX = vw <= 480 ? 16 : 24;
+    var padY = vw <= 480 ? 20 : 28;
+    // 실제 사용 가능한 너비로 cols 계산
+    var avail = vw - padX * 2;
+    var cols  = Math.max(1, Math.floor((avail + gap) / (imgW + gap)));
+    return { imgW: imgW, gap: gap, padX: padX, padY: padY, cols: cols };
   }
 
   function initItems() {
     field.innerHTML = '';
     items = [];
 
-    var layout = getLayout();
-    var padX   = layout.padX;
-    var padY   = layout.padY;
-    var cols   = layout.cols;
-    var gap    = layout.gap;
-    var IMG_W  = layout.imgW;
+    var L     = getLayout();
+    var IMG_W = L.imgW;
+    var gap   = L.gap;
+    var padX  = L.padX;
+    var padY  = L.padY;
+    var cols  = L.cols;
+    var rowH  = IMG_W + gap * 2.5; // 행 높이 (세로 여백 포함)
 
     FILES.forEach(function(src, i) {
       var col = i % cols;
       var row = Math.floor(i / cols);
       var ox  = padX + col * (IMG_W + gap) + IMG_W / 2;
-      var oy  = padY + row * (IMG_W + gap * 3) + IMG_W / 2;
+      var oy  = padY + row * rowH + IMG_W / 2;
 
       var el = document.createElement('img');
       el.src = src;
@@ -1606,32 +1630,25 @@ document.querySelectorAll('.ig-val .kk-trigger').forEach(el => el.addEventListen
       bubble.style.cssText = [
         'position:absolute',
         'font-family:"JetBrains Mono",monospace',
-        'font-size:9px',
-        'color:#555',
-        'white-space:nowrap',
-        'pointer-events:none',
-        'opacity:0',
-        'letter-spacing:0.03em',
-        'z-index:10',
+        'font-size:9px', 'color:#555',
+        'white-space:nowrap', 'pointer-events:none',
+        'opacity:0', 'letter-spacing:0.03em', 'z-index:10',
       ].join(';');
       field.appendChild(bubble);
 
       items.push({
         el: el, bubble: bubble,
-        ox: ox, oy: oy,
-        x: ox, y: oy,
-        vx: 0, vy: 0,
-        imgW: IMG_W,
+        ox: ox, oy: oy, x: ox, y: oy,
+        vx: 0, vy: 0, imgW: IMG_W,
         talking: 0,
         currentLine: LINES[Math.floor(Math.random() * LINES.length)],
         wasClose: false,
       });
     });
 
-    // field 높이 계산
-    var rows   = Math.ceil(FILES.length / cols);
-    var fieldH = padY + rows * (IMG_W + gap * 3) + padY * 2;
-    field.style.height = fieldH + 'px';
+    // field 높이 설정
+    var rows  = Math.ceil(FILES.length / cols);
+    field.style.height = (padY + rows * rowH + padY) + 'px';
   }
 
   function tick() {
@@ -1642,14 +1659,13 @@ document.querySelectorAll('.ig-val .kk-trigger').forEach(el => el.addEventListen
     });
     dists.sort(function(a, b) { return a.d - b.d; });
     var talkers = {};
-    dists.slice(0, 2).forEach(function(obj) {
-      if (obj.d < REPEL * 1.3) talkers[obj.i] = true;
+    dists.slice(0, 2).forEach(function(o) {
+      if (o.d < REPEL * 1.3) talkers[o.i] = true;
     });
 
     items.forEach(function(it, i) {
-      var dx   = it.x - mouse.x;
-      var dy   = it.y - mouse.y;
-      var dist = Math.sqrt(dx * dx + dy * dy);
+      var dx = it.x - mouse.x, dy = it.y - mouse.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
       var isClose = !!talkers[i];
 
       if (isClose && !it.wasClose) {
@@ -1663,33 +1679,26 @@ document.querySelectorAll('.ig-val .kk-trigger').forEach(el => el.addEventListen
         it.vx += (dx / dist) * f * REPEL_F * 0.05;
         it.vy += (dy / dist) * f * REPEL_F * 0.05;
       }
-
       it.vx += (it.ox - it.x) * RETURN;
       it.vy += (it.oy - it.y) * RETURN;
-      it.vx *= DAMP;
-      it.vy *= DAMP;
-      it.x  += it.vx;
-      it.y  += it.vy;
+      it.vx *= DAMP; it.vy *= DAMP;
+      it.x  += it.vx; it.y  += it.vy;
 
       var iw = it.imgW;
       var ih = it.el.offsetHeight || iw;
+      it.el.style.left = (it.x - iw/2) + 'px';
+      it.el.style.top  = (it.y - ih/2) + 'px';
 
-      it.el.style.left = (it.x - iw / 2) + 'px';
-      it.el.style.top  = (it.y - ih / 2) + 'px';
-
-      it.talking = isClose
-        ? Math.min(1, it.talking + 0.10)
-        : Math.max(0, it.talking - 0.06);
+      it.talking = isClose ? Math.min(1, it.talking + 0.10) : Math.max(0, it.talking - 0.06);
       it.bubble.style.opacity = it.talking > 0.01 ? it.talking : 0;
-      it.bubble.style.left = (it.x + iw / 2 + 4) + 'px';
-      it.bubble.style.top  = (it.y - ih / 2 - 2) + 'px';
+      it.bubble.style.left = (it.x + iw/2 + 4) + 'px';
+      it.bubble.style.top  = (it.y - ih/2 - 2) + 'px';
     });
   }
 
   miscPage.addEventListener('mousemove', function(e) {
     var r = field.getBoundingClientRect();
-    mouse.x = e.clientX - r.left;
-    mouse.y = e.clientY - r.top;
+    mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
   });
   miscPage.addEventListener('mouseleave', function() { mouse.x=-9999; mouse.y=-9999; });
   miscPage.addEventListener('touchmove', function(e) {
