@@ -86,6 +86,7 @@
   /* ── PAGE ── */
   main.page { flex: 1; overflow: hidden; display: none; min-height: 0; }
   main.page.active { display: flex; }
+  #ceramic.active { display: block; overflow-y: auto; }
 
   /* ── HOME ── */
   #home { flex-direction: column; justify-content: space-between; padding: 40px 24px 24px; }
@@ -374,14 +375,268 @@
 </main>
 
 <!-- CERAMIC -->
-<main class="page" id="ceramic">
-  <div class="ceramic-label">Ceramic</div>
-  <div class="ceramic-title">Coming<span class="l2">Soon</span></div>
-  <div class="ceramic-footer">
-    <div><div class="label">Category</div><div class="val">Wheel-thrown<br>Handbuilt</div></div>
-    <div><div class="label">Material</div><div class="val">Stoneware,<br>Porcelain</div></div>
-    <div><div class="label">Status</div><div class="val">Shop in development</div></div>
+<main class="page" id="ceramic" style="overflow-y:auto; display:none;">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <div id="ck-wrap" style="font-family:'JetBrains Mono',monospace;color:#111;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:48px 20px 64px;box-sizing:border-box;background:#fff;">
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:320px;">
+      <canvas id="ck-canvas" style="display:block;touch-action:none;cursor:crosshair;"></canvas>
+      <div style="display:flex;align-items:center;gap:10px;width:100%;max-width:280px;margin-top:12px;">
+        <span style="font-size:8px;letter-spacing:0.35em;color:#999;text-transform:uppercase;flex-shrink:0;width:44px;">Speed</span>
+        <div style="flex:1;height:1px;background:#ddd;"><div id="ck-sf" style="height:100%;background:#111;width:0%;transition:width 0.08s;"></div></div>
+        <span id="ck-sn" style="font-size:8px;letter-spacing:0.1em;color:#111;width:30px;text-align:right;flex-shrink:0;">0</span>
+      </div>
+    </div>
+
+    <div style="margin-top:36px;width:100%;max-width:280px;">
+      <div style="display:flex;align-items:flex-start;padding:14px 0;border-top:1px solid #ddd;border-bottom:1px solid #ddd;">
+        <span style="font-size:9px;letter-spacing:0.35em;color:#999;text-transform:uppercase;width:52px;flex-shrink:0;padding-top:4px;">Clay</span>
+        <div id="ck-clay" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;">
+          <button class="ck-pill" data-body="#bfad98" data-hi="rgba(255,248,238,0.38)" data-name="Stoneware" data-rim="#afa090" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #111;background:#111;color:#fff;cursor:none;white-space:nowrap;">Stoneware</button>
+          <button class="ck-pill" data-body="#ddd8cf" data-hi="rgba(255,255,255,0.42)" data-name="Porcelain" data-rim="#ccc6bd" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #ddd;background:transparent;color:#999;cursor:none;white-space:nowrap;">Porcelain</button>
+          <button class="ck-pill" data-body="#b87060" data-hi="rgba(255,240,230,0.35)" data-name="Red Clay" data-rim="#a05848" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #ddd;background:transparent;color:#999;cursor:none;white-space:nowrap;">Red Clay</button>
+          <button class="ck-pill" data-body="#3a3530" data-hi="rgba(255,255,255,0.15)" data-name="Black" data-rim="#2a2520" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #ddd;background:transparent;color:#999;cursor:none;white-space:nowrap;">Black</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;padding:14px 0;border-bottom:1px solid #ddd;">
+        <span style="font-size:9px;letter-spacing:0.35em;color:#999;text-transform:uppercase;width:52px;flex-shrink:0;padding-top:4px;">Glaze</span>
+        <div id="ck-glaze" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;">
+          <button class="ck-pill" data-name="None" data-overlay="rgba(0,0,0,0)" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #111;background:#111;color:#fff;cursor:none;white-space:nowrap;">None</button>
+          <button class="ck-pill" data-name="Celadon" data-overlay="rgba(140,185,165,0.38)" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #ddd;background:transparent;color:#999;cursor:none;white-space:nowrap;">Celadon</button>
+          <button class="ck-pill" data-name="Ash" data-overlay="rgba(200,195,175,0.35)" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #ddd;background:transparent;color:#999;cursor:none;white-space:nowrap;">Ash</button>
+          <button class="ck-pill" data-name="Tenmoku" data-overlay="rgba(40,25,15,0.45)" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #ddd;background:transparent;color:#999;cursor:none;white-space:nowrap;">Tenmoku</button>
+          <button class="ck-pill" data-name="Cobalt" data-overlay="rgba(60,90,160,0.32)" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;padding:4px 10px;border:1px solid #ddd;background:transparent;color:#999;cursor:none;white-space:nowrap;">Cobalt</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:36px;width:100%;max-width:280px;">
+      <div style="font-size:9px;letter-spacing:0.02em;line-height:1.9;color:#999;margin-bottom:22px;text-align:left;">
+        Enter your name and email address.<br>
+        Firing takes approximately five seconds.<br>
+        A record of this piece will be sent to your inbox when it is complete.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+        <span style="font-size:8px;letter-spacing:0.35em;color:#999;text-transform:uppercase;">Name</span>
+        <input autocomplete="off" id="ck-name" placeholder="—" style="background:transparent;border:none;border-bottom:1px solid #ddd;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.08em;color:#111;padding:6px 0;outline:none;width:100%;" type="text">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+        <span style="font-size:8px;letter-spacing:0.35em;color:#999;text-transform:uppercase;">Email</span>
+        <input autocomplete="off" id="ck-email" placeholder="—" style="background:transparent;border:none;border-bottom:1px solid #ddd;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.08em;color:#111;padding:6px 0;outline:none;width:100%;" type="email">
+      </div>
+      <button id="ck-fire" style="margin-top:20px;width:100%;background:transparent;border:1px solid #111;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:#111;padding:12px 0;cursor:none;">Fire</button>
+    </div>
+
+    <div id="ck-prog" style="display:none;margin-top:20px;width:100%;max-width:280px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <span id="ck-ps" style="font-size:9px;letter-spacing:0.2em;color:#999;text-transform:uppercase;">Firing in progress</span>
+        <span id="ck-pp" style="font-size:9px;letter-spacing:0.1em;color:#111;">0%</span>
+      </div>
+      <div style="width:100%;height:1px;background:#ddd;">
+        <div id="ck-pf" style="height:100%;background:#111;width:0%;transition:width 0.25s linear;"></div>
+      </div>
+    </div>
+
+    <div id="ck-msg" style="margin-top:14px;font-size:9px;letter-spacing:0.2em;color:#999;text-align:center;min-height:14px;max-width:280px;font-family:'JetBrains Mono',monospace;"></div>
+    <button id="ck-reset" style="margin-top:20px;background:transparent;border:none;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#999;cursor:none;padding:4px 0;text-decoration:underline;text-underline-offset:3px;">Reset clay</button>
   </div>
+
+  <script>
+  (function(){
+    if(window.__CERAMIC_APP_INIT__)return;
+    window.__CERAMIC_APP_INIT__=true;
+
+    const PK='_e_Wp5U_lueZnFp8W';
+    const SVC='service_xrrzasj';
+    const TPL='template_k2qe76j';
+
+    const canvas=document.getElementById('ck-canvas');
+    const ctx=canvas.getContext('2d');
+    const wrap=document.getElementById('ck-wrap');
+    const SIZE=Math.min(280,(wrap.offsetWidth||window.innerWidth)-40);
+    canvas.width=SIZE;canvas.height=Math.round(SIZE*300/280);
+    const CW=canvas.width,CH=canvas.height,CX=CW/2;
+    const BY=CH-Math.round(CH*32/300);
+    const WRX=Math.round(CW*80/280),WRY=Math.round(CW*10/280);
+
+    let clay={body:'#bfad98',rim:'#afa090',hi:'rgba(255,248,238,0.38)',name:'Stoneware'};
+    let glaze={overlay:'rgba(0,0,0,0)',name:'None'};
+    let pot={pts:[],h:0,speed:0,angle:0};
+    let drag={on:false};
+    let lastT=0,fired=false,isSending=false,shapeStart=Date.now();
+
+    function init(){
+      pot.pts=[];pot.h=CW*100/280;pot.speed=0;pot.angle=0;
+      fired=false;isSending=false;shapeStart=Date.now();
+      for(let i=0;i<=10;i++){
+        const t=i/10;
+        pot.pts.push({r:(16+11*Math.sin(t*Math.PI*0.9+0.15))*CW/280,y:t});
+      }
+    }
+
+    function frame(ts){
+      ctx.clearRect(0,0,CW,CH);
+      const dt=Math.min((ts-lastT)/1000,0.05);lastT=ts;
+      pot.speed+=((drag.on&&!fired?5:0)-pot.speed)*0.06;
+      pot.angle+=pot.speed*dt;
+      document.getElementById('ck-sf').style.width=Math.min(pot.speed/8*100,100)+'%';
+      document.getElementById('ck-sn').textContent=Math.round(pot.speed*12);
+
+      ctx.save();
+      ctx.beginPath();ctx.ellipse(CX,BY,WRX,WRY,0,0,Math.PI*2);
+      ctx.fillStyle='#ccc9c3';ctx.fill();
+      ctx.restore();
+
+      const p=pot.pts.map(pt=>({x:pt.r,y:BY-pt.y*pot.h}));
+      if(p.length>1){
+        ctx.save();
+        const top=p[p.length-1];
+        ctx.beginPath();ctx.moveTo(CX,BY);
+        for(let i=0;i<p.length;i++)ctx.lineTo(CX+p[i].x,p[i].y);
+        ctx.lineTo(CX,top.y-2);
+        for(let i=p.length-1;i>=0;i--)ctx.lineTo(CX-p[i].x,p[i].y);
+        ctx.closePath();
+        ctx.fillStyle=clay.body;ctx.fill();
+        if(glaze.overlay!=='rgba(0,0,0,0)'){ctx.fillStyle=glaze.overlay;ctx.fill();}
+        ctx.globalCompositeOperation='source-atop';
+        ctx.fillStyle='rgba(0,0,0,0.08)';
+        ctx.fillRect(CX+top.x*0.3,0,CW,CH);
+        ctx.globalCompositeOperation='source-over';
+        ctx.beginPath();ctx.ellipse(CX,top.y,top.x,top.x*0.2,0,0,Math.PI*2);
+        ctx.fillStyle=clay.rim;ctx.fill();
+        if(glaze.overlay!=='rgba(0,0,0,0)'){ctx.fillStyle=glaze.overlay;ctx.fill();}
+        ctx.beginPath();ctx.ellipse(CX,top.y,top.x*0.7,top.x*0.12,0,0,Math.PI*2);
+        ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fill();
+        ctx.beginPath();
+        for(let i=0;i<p.length;i++){const x=CX-p[i].x*0.6+2;if(i===0)ctx.moveTo(x,p[i].y);else ctx.lineTo(x,p[i].y);}
+        ctx.strokeStyle=clay.hi;ctx.lineWidth=4;ctx.lineCap='round';ctx.stroke();
+        ctx.restore();
+      }
+      requestAnimationFrame(frame);
+    }
+
+    canvas.onmousedown=e=>{if(fired)return;drag.on=true;};
+    canvas.addEventListener('mousemove',e=>{
+      if(!drag.on||fired)return;
+      const r=canvas.getBoundingClientRect();
+      const py=(e.clientY-r.top)*CH/r.height;
+      const dx=e.movementX||0;
+      pot.pts.forEach(pt=>{
+        const d=Math.abs((BY-pt.y*pot.h)-py);
+        const inf=Math.max(0,1-d/(CW*0.2));
+        pt.r=Math.max(5,Math.min(WRX-8,pt.r+dx*inf*0.4));
+      });
+      pot.h=Math.max(30,Math.min(CH*0.8,pot.h-(e.movementY||0)*0.5));
+    });
+    window.addEventListener('mouseup',()=>{drag.on=false;});
+
+    canvas.addEventListener('touchstart',e=>{if(fired)return;drag.on=true;drag.lx=e.touches[0].clientX;drag.ly=e.touches[0].clientY;},{passive:true});
+    canvas.addEventListener('touchmove',e=>{
+      if(!drag.on||fired)return;
+      e.preventDefault();
+      const dx=e.touches[0].clientX-drag.lx;
+      const dy=e.touches[0].clientY-drag.ly;
+      drag.lx=e.touches[0].clientX;drag.ly=e.touches[0].clientY;
+      const r=canvas.getBoundingClientRect();
+      const py=(e.touches[0].clientY-r.top)*CH/r.height;
+      pot.pts.forEach(pt=>{
+        const d=Math.abs((BY-pt.y*pot.h)-py);
+        const inf=Math.max(0,1-d/(CW*0.2));
+        pt.r=Math.max(5,Math.min(WRX-8,pt.r+dx*inf*0.4));
+      });
+      pot.h=Math.max(30,Math.min(CH*0.8,pot.h-dy*0.5));
+    },{passive:false});
+    canvas.addEventListener('touchend',()=>{drag.on=false;},{passive:true});
+
+    document.querySelectorAll('#ck-clay .ck-pill').forEach(b=>{
+      b.onclick=()=>{
+        if(fired)return;
+        document.querySelectorAll('#ck-clay .ck-pill').forEach(p=>{p.style.background='transparent';p.style.color='#999';p.style.borderColor='#ddd';});
+        b.style.background='#111';b.style.color='#fff';b.style.borderColor='#111';
+        clay={body:b.dataset.body,rim:b.dataset.rim,hi:b.dataset.hi,name:b.dataset.name};
+      };
+    });
+    document.querySelectorAll('#ck-glaze .ck-pill').forEach(b=>{
+      b.onclick=()=>{
+        if(fired)return;
+        document.querySelectorAll('#ck-glaze .ck-pill').forEach(p=>{p.style.background='transparent';p.style.color='#999';p.style.borderColor='#ddd';});
+        b.style.background='#111';b.style.color='#fff';b.style.borderColor='#111';
+        glaze={overlay:b.dataset.overlay,name:b.dataset.name};
+      };
+    });
+
+    document.getElementById('ck-fire').onclick=()=>{
+      if(fired||isSending)return;
+      const email=document.getElementById('ck-email').value.trim();
+      if(!email.includes('@')){alert('Please enter a valid email.');return;}
+      fired=true;
+      document.getElementById('ck-prog').style.display='block';
+      const FIRE=5000,t0=Date.now();
+      const iv=setInterval(()=>{
+        const pct=Math.min((Date.now()-t0)/FIRE*100,100);
+        document.getElementById('ck-pf').style.width=pct+'%';
+        document.getElementById('ck-pp').textContent=Math.round(pct)+'%';
+        const rem=Math.ceil((FIRE-(Date.now()-t0))/1000);
+        document.getElementById('ck-ps').textContent=rem>0?rem+'s remaining':'Firing complete';
+        if(pct>=100){clearInterval(iv);if(!isSending){isSending=true;sendEmail(email);}}
+      },500);
+    };
+
+    function smallImage(){
+      const tmp=document.createElement('canvas');
+      tmp.width=150;tmp.height=Math.round(150*CH/CW);
+      const tc=tmp.getContext('2d');
+      tc.fillStyle='#fff';tc.fillRect(0,0,tmp.width,tmp.height);
+      tc.drawImage(canvas,0,0,tmp.width,tmp.height);
+      return tmp.toDataURL('image/jpeg',0.7);
+    }
+
+    function sendEmail(email){
+      const msg=document.getElementById('ck-msg');
+      msg.textContent='Sending…';
+      const sec=Math.round((Date.now()-shapeStart)/1000);
+      const st=sec>=60?Math.floor(sec/60)+'m '+(sec%60)+'s':sec+'s';
+      const fa=new Date().toLocaleString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      window.emailjs.send(SVC,TPL,{
+        to_email:email,
+        user_name:document.getElementById('ck-name').value.trim()||'—',
+        clay_name:clay.name,
+        glaze_name:glaze.name,
+        fired_at:fa,
+        shape_time:st,
+        pot_image:smallImage()
+      },PK).then(()=>{
+        msg.textContent='Sent. Check your inbox.';
+        msg.style.color='#111';
+        document.getElementById('ck-prog').style.display='none';
+      }).catch(err=>{
+        console.error('EmailJS:',err);
+        msg.textContent='Failed to send. Please try again.';
+        fired=false;isSending=false;
+      });
+    }
+
+    document.getElementById('ck-reset').onclick=()=>{
+      init();
+      document.getElementById('ck-msg').textContent='';
+      document.getElementById('ck-msg').style.color='#999';
+      document.getElementById('ck-prog').style.display='none';
+      document.getElementById('ck-pf').style.width='0%';
+    };
+
+    // ceramic 탭 클릭 시 canvas 루프 시작
+    document.getElementById('ck-canvas').addEventListener('ck-start', function(){
+      init();
+      requestAnimationFrame(ts=>{lastT=ts;requestAnimationFrame(frame);});
+    });
+
+    // 페이지 로드 시 ceramic이 active면 바로 시작
+    if(document.getElementById('ceramic').classList.contains('active')){
+      window.__CERAMIC_CANVAS_READY__=true;
+      init();
+      requestAnimationFrame(ts=>{lastT=ts;requestAnimationFrame(frame);});
+    }
+  })();
+  </script>
 </main>
 
 <!-- INFO -->
@@ -1012,6 +1267,12 @@ document.querySelectorAll('nav.topnav a[data-page]').forEach(a => {
     a.classList.add('active');
     document.querySelectorAll('main.page').forEach(p => p.classList.remove('active'));
     document.getElementById(a.dataset.page).classList.add('active');
+    // ceramic 탭: canvas 루프 시작 (최초 1회)
+    if (a.dataset.page === 'ceramic' && !window.__CERAMIC_CANVAS_READY__) {
+      window.__CERAMIC_CANVAS_READY__ = true;
+      const ckCanvas = document.getElementById('ck-canvas');
+      if (ckCanvas) ckCanvas.dispatchEvent(new Event('ck-start'));
+    }
   });
 });
 
