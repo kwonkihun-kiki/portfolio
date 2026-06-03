@@ -147,12 +147,11 @@
   }
   .archive-item { padding: 16px; }
   .archive-thumb {
-    width: 100%; aspect-ratio: 16/10; background: #f3f3f3; margin-bottom: 16px;
+    width: 100%; background: #f3f3f3; margin-bottom: 16px;
     overflow: hidden; display: flex; align-items: center; justify-content: center;
   }
   .archive-thumb img {
-    width: 100%; height: 100%; object-fit: cover;
-    display: none; opacity: 0; transition: opacity 0.35s ease;
+    width: 100%; height: auto; display: none; opacity: 0; transition: opacity 0.35s ease;
   }
   .archive-thumb img.loaded { display: block; opacity: 1; }
   .archive-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px; }
@@ -213,8 +212,8 @@
   .layout-hover .d-img-wrap:hover .img-base { opacity: 0 !important; }
   .layout-hover .d-img-wrap:hover .img-hover { opacity: 1 !important; }
 
-  /* bds_custom: hover쌍 5열 2줄 + 나머지 2열 */
-  .layout-bds-top { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 4px; }
+  /* bds_custom: hover쌍 3열 2줄 + 나머지 2열 */
+  .layout-bds-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 4px; }
   .layout-bds-top .d-img-wrap { background: #f3f3f3; position: relative; overflow: hidden; }
   .layout-bds-top .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-bds-top .d-img-wrap img.loaded { opacity: 1; }
@@ -244,8 +243,8 @@
   .layout-jumble2 .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-jumble2 .d-img-wrap img.loaded { opacity: 1; }
 
-  /* gorillas: 2열 (이미지 쌍) */
-  .layout-gorillas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* gorillas: 4열 */
+  .layout-gorillas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .layout-gorillas .d-img-wrap { background: #f3f3f3; }
   .layout-gorillas .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-gorillas .d-img-wrap img.loaded { opacity: 1; }
@@ -481,7 +480,7 @@ const PROJECTS = [
     year: '2024',
     type: 'Poster',
     layout: 'grid2',
-    images: ['01.png','02.png','03.png','04.png','05.png','06.png']
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg']
   },
   {
     id: 'p02',
@@ -506,8 +505,8 @@ const PROJECTS = [
     year: '2023',
     type: 'Print',
     layout: 'hover',
-    images: ['01.png','02.png','03.png'],
-    hover:  [['01.png','01h.png'],['02.png','02h.png'],['03.png','03h.png']]
+    images: ['01.jpg','02.jpg','03.jpg'],
+    hover:  [['01.jpg','01h.jpg'],['02.jpg','02h.jpg'],['03.jpg','03h.jpg']]
   },
   {
     id: 'p05',
@@ -516,7 +515,7 @@ const PROJECTS = [
     year: '2023',
     type: 'Book',
     layout: 'gorillas',
-    images: ['01.JPG','02.JPG','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.png']
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg']
   },
   {
     id: 'p06',
@@ -543,7 +542,7 @@ const PROJECTS = [
     year: '2023',
     type: 'Print',
     layout: 'grid2',
-    images: ['01.png','02.png','03.png','04.png','05.png','06.png']
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg']
   },
   {
     id: 'p07',
@@ -562,7 +561,7 @@ const PROJECTS = [
     year: '2022',
     type: 'Print',
     layout: 'grid2',
-    images: ['01.png','02.png','03.png','04.png','05.png','06.png','07.png','08.png']
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg']
   },
   {
     id: 'p09',
@@ -571,7 +570,7 @@ const PROJECTS = [
     year: '2022',
     type: 'Editorial',
     layout: 'default',
-    images: ['01.png','02.png','03.png','04.png','05.png','06.png','07.png','08.png','09.png']
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg']
   },
   {
     id: 'p10',
@@ -582,7 +581,7 @@ const PROJECTS = [
     layout: 'reconstruction',
     // graphic: 01~09, photo: 10~19 (파일명 그대로)
     images:  ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg','10.jpg'],
-    images2: ['11.JPG','12.JPG','13.JPG','14.JPG','15.JPG','16.JPG','17.JPG','18.JPG','19.JPG','20.JPG']
+    images2: ['11.jpg','12.jpg','13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg','19.jpg','20.jpg']
   },
   {
     id: 'p11',
@@ -591,7 +590,7 @@ const PROJECTS = [
     year: '2021',
     type: 'Book',
     layout: 'default',
-    images: ['01.png','02.png','03.png','04.png','05.png']
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg']
   },
   {
     id: 'p12',
@@ -679,15 +678,8 @@ PROJECTS.forEach(p => {
   div.className = 'archive-item';
   div.id = 'arc-' + p.id;
 
-  // thumb 확장자 추론 (폴더명 기반)
-  const thumbExt = p.folder.includes('nondry') ? 'JPG' :
-                   p.folder.includes('reconstruction') ? 'jpg' : 'jpg';
-  // png thumb인 프로젝트들
-  const pngThumbs = ['p01_meatball','p05_Imademyfriendsintogorillas','p09_sky_samples',
-                     'p11_alice','p16_postcard'];
-  const tExt = pngThumbs.includes(p.folder) ? 'png' : 'jpg';
-  // p08 nondry thumb.JPG 예외
-  const tFile = p.folder === 'p08_nondry' ? 'thumb.png' : 'thumb.' + tExt;
+  // thumb 파일명: 전부 thumb.jpg (p08 nondry만 thumb.png 예외 유지)
+  const tFile = p.folder === 'p08_nondry' ? 'thumb.png' : 'thumb.jpg';
 
   const thumbDiv = document.createElement('div');
   thumbDiv.className = 'archive-thumb';
