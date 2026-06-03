@@ -544,7 +544,7 @@ const PROJECTS = [
     layout: 'reconstruction',
     // graphic: 01~09, photo: 10~19 (파일명 그대로)
     images:  ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.jpg'],
-    images2: ['10.JPG','11.JPG','12.JPG','13.JPG','14.JPG','15.JPG','16.JPG','17.JPG','18.JPG','19.JPG']
+    images2: ['10.JPG','11.JPG','12.JPG','13.JPG','14.JPG','15.JPG','16.JPG','17.JPG','18.JPG','19.JPG','20.JPG']
   },
   {
     id: 'p11',
@@ -655,7 +655,8 @@ PROJECTS.forEach(p => {
   thumbDiv.className = 'archive-thumb';
   const tImg = lazyImg('./images/works/' + p.folder + '/' + tFile, p.title);
   thumbDiv.appendChild(tImg);
-  requestAnimationFrame(() => observeThumb(tImg));
+  // 썸네일 바로 로드
+  requestAnimationFrame(() => loadImg(tImg));
 
   div.innerHTML = `
     <div class="archive-row">
@@ -883,8 +884,8 @@ archiveView.addEventListener('click', e => {
 
   renderDetail(p);
 
-  // 상세뷰 이미지 lazy observer 등록
-  document.querySelectorAll('#detail-images img[data-src]').forEach(img => getDetailObserver().observe(img));
+  // 상세뷰 이미지 로드 (base + hover 전부)
+  document.querySelectorAll('#detail-images img[data-src]').forEach(img => loadImg(img));
 
   archiveView.style.display = 'none';
   detailView.classList.add('show');
