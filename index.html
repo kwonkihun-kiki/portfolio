@@ -318,9 +318,17 @@
   }
 
   @media (max-width: 800px) {
-    html, body { height: 100vh; overflow: hidden; }
+    html, body { height: 100%; overflow: hidden; }
     main.page { height: calc(100vh - 45px); overflow: hidden; }
-    #ceramic.active { height: auto; overflow-y: auto; }
+
+    /* 홈: 세로 스크롤 허용 */
+    #home.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Free: 스크롤 허용 */
+    #free.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Ceramic: 스크롤 허용 */
+    #ceramic.active { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
     /* Works 모바일 탭 */
     #works { flex-direction: column; }
@@ -349,6 +357,7 @@
       height: 100%;
       overflow-y: auto;
       display: none;
+      -webkit-overflow-scrolling: touch;
     }
     .works-list.mob-active { display: flex; flex-direction: column; }
 
@@ -357,6 +366,7 @@
       height: 100%;
       overflow-y: auto;
       display: none;
+      -webkit-overflow-scrolling: touch;
     }
     .works-right.mob-active { display: block; }
 
@@ -1517,83 +1527,82 @@ document.querySelectorAll('.info-tabs a[data-tab]').forEach(a => {
 
 
 
-// ── FREE 페이지 — 자석 테이블 (B안) ──
+
+// ── FREE 페이지 — 중력 없는 방 (A안) ──
 (function() {
 
   var FILES = [
-    { src: './images/works/free/01.jpg' },
-    { src: './images/works/free/03.jpg' },
-    { src: './images/works/free/04.jpg' },
-    { src: './images/works/free/05.jpg' },
-    { src: './images/works/free/06.jpg' },
-    { src: './images/works/free/10.jpg' },
-    { src: './images/works/free/hoir.jpg' },
-    { src: './images/works/free/chair.jpg' },
-    { src: './images/works/free/Asset 1.jpg' },
-    { src: './images/works/free/KakaoTalk_20220401_140538636.jpg' },
-    { src: './images/works/free/smiley/01.jpg' },
-    { src: './images/works/free/smiley/02.jpg' },
-    { src: './images/works/free/smiley/03.jpg' },
-    { src: './images/works/free/stickers/02.jpg' },
-    { src: './images/works/free/stickers/03.jpg' },
-    { src: './images/works/free/stickers/04.jpg' },
-    { src: './images/works/free/stickers/05.jpg' },
-    { src: './images/works/free/stickers/07.jpg' },
+    './images/works/free/01.jpg',
+    './images/works/free/03.jpg',
+    './images/works/free/04.jpg',
+    './images/works/free/05.jpg',
+    './images/works/free/06.jpg',
+    './images/works/free/10.jpg',
+    './images/works/free/hoir.jpg',
+    './images/works/free/chair.jpg',
+    './images/works/free/Asset 1.jpg',
+    './images/works/free/KakaoTalk_20220401_140538636.jpg',
+    './images/works/free/smiley/01.jpg',
+    './images/works/free/smiley/02.jpg',
+    './images/works/free/smiley/03.jpg',
+    './images/works/free/stickers/02.jpg',
+    './images/works/free/stickers/03.jpg',
+    './images/works/free/stickers/04.jpg',
+    './images/works/free/stickers/05.jpg',
+    './images/works/free/stickers/07.jpg',
   ];
 
-  var table   = document.getElementById('free-table');
-  var items   = [];
-  var mouse   = { x: -9999, y: -9999 };
-  var RAF     = null;
-  var ready   = false;
+  var freePage = document.getElementById('free');
+  var table    = document.getElementById('free-table');
+  var items    = [];
+  var mouse    = { x: -9999, y: -9999 };
+  var RAF      = null;
+  var ready    = false;
   var W = 0, H = 0;
 
-  var IMG_W    = 120;   // 기본 이미지 너비
-  var ATTRACT  = 160;   // 자석 반경
-  var ATTRACT_F= 0.18;  // 끌어당기는 강도
-  var RETURN   = 0.06;  // 원위치 복귀
-  var DAMP     = 0.78;  // 감쇠
+  var IMG_W  = 110;
+  var BOUNCE = 0.6;
+  var DAMP   = 0.985;  // 감쇠 거의 없음 — 둥둥 떠다님
+  var REPEL  = 150;
+  var REPEL_F= 18;
+  var COLLIDE= 80;     // 이미지끼리 충돌 반경
 
-  function rand(min, max) { return min + Math.random() * (max - min); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
 
   function initItems() {
     table.innerHTML = '';
     items = [];
-    W = table.offsetWidth;
-    H = table.offsetHeight;
+    W = table.offsetWidth || window.innerWidth;
+    H = table.offsetHeight || window.innerHeight;
 
-    FILES.forEach(function(f, i) {
-      var ox = rand(IMG_W * 0.6, W - IMG_W * 0.6);
-      var oy = rand(IMG_W * 0.6, H - IMG_W * 0.6);
-      var rot = rand(-18, 18);
-
-      var el = document.createElement('div');
+    FILES.forEach(function(src) {
+      var el  = document.createElement('img');
+      el.src  = src;
+      el.draggable = false;
       el.style.cssText = [
         'position:absolute',
         'width:' + IMG_W + 'px',
-        'cursor:none',
-        'transform:translate(-50%,-50%) rotate(' + rot + 'deg)',
-        'left:' + ox + 'px',
-        'top:'  + oy + 'px',
+        'height:auto',
+        'pointer-events:none',
         'will-change:transform',
-        'transition:box-shadow 0.2s',
+        'display:block',
       ].join(';');
-
-      var img = document.createElement('img');
-      img.src = f.src;
-      img.style.cssText = 'width:100%;height:auto;display:block;pointer-events:none;';
-      img.draggable = false;
-      el.appendChild(img);
       table.appendChild(el);
 
-      var item = {
-        el: el, ox: ox, oy: oy,
-        x: ox, y: oy,
-        vx: 0, vy: 0,
-        rot: rot,
-        attracted: false,
+      items.push({
+        el:  el,
+        x:   rand(IMG_W, W - IMG_W),
+        y:   rand(IMG_W, H - IMG_W),
+        vx:  rand(-1.2, 1.2),
+        vy:  rand(-1.2, 1.2),
+        w:   IMG_W,
+        h:   IMG_W, // 로드 전 임시, 로드 후 갱신
+      });
+
+      el.onload = function() {
+        var last = items[items.indexOf(items.find(function(it){ return it.el === el; }))];
+        if (last) last.h = el.offsetHeight || IMG_W * (el.naturalHeight / el.naturalWidth || 1);
       };
-      items.push(item);
     });
   }
 
@@ -1602,67 +1611,72 @@ document.querySelectorAll('.info-tabs a[data-tab]').forEach(a => {
     W = table.offsetWidth;
     H = table.offsetHeight;
 
-    items.forEach(function(it) {
-      var dx   = mouse.x - it.x;
-      var dy   = mouse.y - it.y;
+    items.forEach(function(it, i) {
+      // 커서 반발
+      var cx = it.x + it.w / 2;
+      var cy = it.y + it.h / 2;
+      var dx = cx - mouse.x;
+      var dy = cy - mouse.y;
       var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < REPEL && dist > 1) {
+        var f = Math.pow((REPEL - dist) / REPEL, 1.2);
+        it.vx += (dx / dist) * f * REPEL_F * 0.05;
+        it.vy += (dy / dist) * f * REPEL_F * 0.05;
+      }
 
-      // 자석: 끌어당김
-      if (dist < ATTRACT && dist > 1) {
-        var f = (1 - dist / ATTRACT) * ATTRACT_F;
-        it.vx += dx * f;
-        it.vy += dy * f;
-        if (!it.attracted) {
-          it.attracted = true;
-          it.el.style.boxShadow = '2px 4px 12px rgba(0,0,0,0.18)';
-          it.el.style.zIndex = '10';
-        }
-      } else {
-        // 원위치 복귀
-        it.vx += (it.ox - it.x) * RETURN;
-        it.vy += (it.oy - it.y) * RETURN;
-        if (it.attracted) {
-          it.attracted = false;
-          it.el.style.boxShadow = 'none';
-          it.el.style.zIndex = '';
+      // 이미지끼리 충돌 (간단한 원형 근사)
+      for (var j = i + 1; j < items.length; j++) {
+        var ot  = items[j];
+        var ocx = ot.x + ot.w / 2;
+        var ocy = ot.y + ot.h / 2;
+        var ddx = cx - ocx;
+        var ddy = cy - ocy;
+        var dd  = Math.sqrt(ddx * ddx + ddy * ddy);
+        var minD = (it.w + ot.w) * 0.42;
+        if (dd < minD && dd > 0.5) {
+          var push = ((minD - dd) / minD) * 0.4;
+          it.vx += (ddx / dd) * push;
+          it.vy += (ddy / dd) * push;
+          ot.vx -= (ddx / dd) * push;
+          ot.vy -= (ddy / dd) * push;
         }
       }
 
+      // 감쇠 (거의 없음)
       it.vx *= DAMP;
       it.vy *= DAMP;
-      it.x  += it.vx;
-      it.y  += it.vy;
 
-      // 회전도 살짝 반응
-      var tiltX = it.vx * 0.8;
-      var currentRot = it.rot + tiltX;
+      // 속도 상한
+      var spd = Math.sqrt(it.vx * it.vx + it.vy * it.vy);
+      if (spd > 6) { it.vx = it.vx / spd * 6; it.vy = it.vy / spd * 6; }
+
+      it.x += it.vx;
+      it.y += it.vy;
+
+      // 벽 바운스
+      if (it.x < 0)          { it.x = 0;          it.vx = Math.abs(it.vx) * BOUNCE; }
+      if (it.x > W - it.w)   { it.x = W - it.w;   it.vx = -Math.abs(it.vx) * BOUNCE; }
+      if (it.y < 0)          { it.y = 0;           it.vy = Math.abs(it.vy) * BOUNCE; }
+      if (it.y > H - it.h)   { it.y = H - it.h;   it.vy = -Math.abs(it.vy) * BOUNCE; }
 
       it.el.style.left = it.x + 'px';
       it.el.style.top  = it.y + 'px';
-      it.el.style.transform = 'translate(-50%,-50%) rotate(' + currentRot + 'deg)';
     });
   }
 
-  // 마우스
-  var freePage = document.getElementById('free');
+  // 마우스/터치
   freePage.addEventListener('mousemove', function(e) {
     var r = table.getBoundingClientRect();
     mouse.x = e.clientX - r.left;
     mouse.y = e.clientY - r.top;
   });
-  freePage.addEventListener('mouseleave', function() {
-    mouse.x = -9999; mouse.y = -9999;
-  });
-
-  // 터치
+  freePage.addEventListener('mouseleave', function() { mouse.x = -9999; mouse.y = -9999; });
   freePage.addEventListener('touchmove', function(e) {
     var r = table.getBoundingClientRect();
     mouse.x = e.touches[0].clientX - r.left;
     mouse.y = e.touches[0].clientY - r.top;
   }, { passive: true });
-  freePage.addEventListener('touchend', function() {
-    mouse.x = -9999; mouse.y = -9999;
-  });
+  freePage.addEventListener('touchend', function() { mouse.x = -9999; mouse.y = -9999; });
 
   function startFree() {
     if (RAF) return;
@@ -1673,41 +1687,19 @@ document.querySelectorAll('.info-tabs a[data-tab]').forEach(a => {
     if (RAF) { cancelAnimationFrame(RAF); RAF = null; }
   }
 
-  // 탭 전환
   document.querySelectorAll('nav.topnav a[data-page]').forEach(function(a) {
     a.addEventListener('click', function() {
-      if (a.dataset.page === 'free') {
-        requestAnimationFrame(function() { startFree(); });
-      } else {
-        stopFree();
-      }
+      if (a.dataset.page === 'free') { requestAnimationFrame(function(){ startFree(); }); }
+      else { stopFree(); }
     });
   });
 
   window.addEventListener('resize', function() {
     if (document.getElementById('free').classList.contains('active')) {
-      ready = false;
-      stopFree();
-      startFree();
+      ready = false; stopFree(); startFree();
     }
   });
 
-})();
-
-// ── 모바일 타이핑 오버레이 이후 스크롤 fix ──
-(function() {
-  var overlay = document.getElementById('typewriter-overlay');
-  if (!overlay) return;
-  // pointer-events: none 이라 터치를 막지 않지만
-  // overlay.show 중엔 body에 클래스 줘서 스크롤 막히는 경우 방지
-  var obs = new MutationObserver(function() {
-    // show 클래스 제거되면 스크롤 복원
-    if (!overlay.classList.contains('show')) {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    }
-  });
-  obs.observe(overlay, { attributes: true, attributeFilter: ['class'] });
 })();
 </script>
 </body>
