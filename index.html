@@ -613,16 +613,15 @@ function lazyImg(src, alt, extraClass) {
 }
 
 // archive thumb 즉시 로드 함수 (DOM append 후 호출)
-function observeThumb(img) {
-  // works-right 스크롤 컨테이너 기준 observer
-  const worksRightEl = document.getElementById('works-right');
+ffunction observeThumb(img) {
+  // root: null (뷰포트 기준) + rootMargin 크게 줘서 확실히 감지
   const thumbObserver = new IntersectionObserver((entries, obs) => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
       loadImg(entry.target);
       obs.unobserve(entry.target);
     });
-  }, { root: worksRightEl, rootMargin: '200px', threshold: 0 });
+  }, { root: null, rootMargin: '9999px', threshold: 0 });
   thumbObserver.observe(img);
 }
 
