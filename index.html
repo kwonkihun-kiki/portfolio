@@ -136,11 +136,16 @@
   .works-right::-webkit-scrollbar { display: none; }
 
   /* ── 아카이브 뷰 ── */
+  #archive-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
   .archive-empty {
     height: 100%; display: flex; align-items: center; justify-content: center;
     font-size: 11px; color: var(--dim); min-height: 200px;
   }
-  .archive-item { padding: 28px 28px 32px; }
+  .archive-item { padding: 16px; }
   .archive-thumb {
     width: 100%; aspect-ratio: 16/10; background: #f3f3f3; margin-bottom: 16px;
     overflow: hidden; display: flex; align-items: center; justify-content: center;
@@ -190,7 +195,8 @@
   .layout-confessions .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-confessions .d-img-wrap img.loaded { opacity: 1; }
   .layout-confessions .d-img-wrap .img-hover {
-    position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s;
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important;
   }
   .layout-confessions .d-img-wrap:hover .img-base { opacity: 0 !important; }
   .layout-confessions .d-img-wrap:hover .img-hover { opacity: 1 !important; }
@@ -201,18 +207,35 @@
   .layout-hover .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-hover .d-img-wrap img.loaded { opacity: 1; }
   .layout-hover .d-img-wrap .img-hover {
-    position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s;
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important;
   }
   .layout-hover .d-img-wrap:hover .img-base { opacity: 0 !important; }
   .layout-hover .d-img-wrap:hover .img-hover { opacity: 1 !important; }
 
-  /* jumble1: 4열 한 줄 */
+  /* bds_custom: hover쌍 5열 2줄 + 나머지 2열 */
+  .layout-bds-top { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 4px; }
+  .layout-bds-top .d-img-wrap { background: #f3f3f3; position: relative; overflow: hidden; }
+  .layout-bds-top .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-bds-top .d-img-wrap img.loaded { opacity: 1; }
+  .layout-bds-top .d-img-wrap .img-hover {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; transition: opacity 0.2s; display: block !important;
+  }
+  .layout-bds-top .d-img-wrap:hover .img-base { opacity: 0 !important; }
+  .layout-bds-top .d-img-wrap:hover .img-hover { opacity: 1 !important; }
+  .layout-bds-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .layout-bds-bottom .d-img-wrap { background: #f3f3f3; }
+  .layout-bds-bottom .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
+  .layout-bds-bottom .d-img-wrap img.loaded { opacity: 1; }
+
+  /* jumble1: 4열 */
   .layout-jumble1 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .layout-jumble1 .d-img-wrap { background: #f3f3f3; }
   .layout-jumble1 .d-img-wrap img { width: 100%; display: block; opacity: 0; transition: opacity 0.35s; }
   .layout-jumble1 .d-img-wrap img.loaded { opacity: 1; }
 
-  /* jumble2: 첫 줄 3열, 이후 2열 */
+  /* jumble2: 3/2/2... */
   .layout-jumble2 { display: flex; flex-direction: column; gap: 6px; }
   .layout-jumble2 .j2-row { display: grid; gap: 6px; }
   .layout-jumble2 .j2-row.cols3 { grid-template-columns: repeat(3, 1fr); }
@@ -419,10 +442,10 @@ const PROJECTS = [
     title: 'BDS Archive',
     year: '2026',
     type: 'Identity',
-    layout: 'bds',
+    layout: 'bds_custom',
     images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg'],
-    hover:  [['01.jpg','01-1.jpg'],['02.jpg','02-1.jpg'],['03.jpg','03-1.jpg'],
-             ['04.jpg','04-1.jpg'],['05.jpg','05-1.jpg'],['06.jpg','06-1.jpg']]
+    hover:  [['01.jpg','01h.jpg'],['02.jpg','02h.jpg'],['03.jpg','03h.jpg'],
+             ['04.jpg','04h.jpg'],['05.jpg','05h.jpg'],['06.jpg','06h.jpg']]
   },
   {
     id: 'p13',
@@ -469,10 +492,10 @@ const PROJECTS = [
     layout: 'confessions',
     images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg',
              '07.jpg','08.jpg','09.jpg','10.jpg','11.jpg','12.jpg'],
-    hover:  [['01.jpg','01-1.jpg'],['02.jpg','02-1.jpg'],['03.jpg','03-1.jpg'],
-             ['04.jpg','04-1.jpg'],['05.jpg','05-1.jpg'],['06.jpg','06-1.jpg'],
-             ['07.jpg','07-1.jpg'],['08.jpg','08-1.jpg'],['09.jpg','09-1.jpg'],
-             ['10.jpg','10-1.jpg'],['11.jpg','11-1.jpg'],['12.jpg','12-1.jpg']],
+    hover:  [['01.jpg','01h.jpg'],['02.jpg','02h.jpg'],['03.jpg','03h.jpg'],
+             ['04.jpg','04h.jpg'],['05.jpg','05h.jpg'],['06.jpg','06h.jpg'],
+             ['07.jpg','07h.jpg'],['08.jpg','08h.jpg'],['09.jpg','09h.jpg'],
+             ['10.jpg','10h.jpg'],['11.jpg','11h.jpg'],['12.jpg','12h.jpg']],
     images2: ['13.jpg','14.jpg','15.jpg','16.jpg','17.jpg','18.jpg',
               '19.jpg','20.jpg','21.jpg','22.jpg','23.jpg','24.jpg']
   },
@@ -484,7 +507,7 @@ const PROJECTS = [
     type: 'Print',
     layout: 'hover',
     images: ['01.png','02.png','03.png'],
-    hover:  [['01.png','01-1.png'],['02.png','02-1.png'],['03.png','03-1.png']]
+    hover:  [['01.png','01h.png'],['02.png','02h.png'],['03.png','03h.png']]
   },
   {
     id: 'p05',
@@ -493,7 +516,7 @@ const PROJECTS = [
     year: '2023',
     type: 'Book',
     layout: 'gorillas',
-    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.png','09.PNG']
+    images: ['01.JPG','02.JPG','03.jpg','04.jpg','05.jpg','06.jpg','07.jpg','08.jpg','09.png']
   },
   {
     id: 'p06',
@@ -529,8 +552,8 @@ const PROJECTS = [
     year: '2022',
     type: 'Identity',
     layout: 'grid2',
-    images: ['01.jpg','02.jpg','03.png','04.png','05.png','06.png',
-             '07.png','08.png','09.png','10.png','11.png','12.png']
+    images: ['01.jpg','02.jpg','03.jpg','04.jpg','05.jpg','06.jpg',
+             '07.jpg','08.jpg','09.jpg','10.jpg','11.jpg','12.jpg']
   },
   {
     id: 'p08',
@@ -664,7 +687,7 @@ PROJECTS.forEach(p => {
                      'p11_alice','p16_postcard'];
   const tExt = pngThumbs.includes(p.folder) ? 'png' : 'jpg';
   // p08 nondry thumb.JPG 예외
-  const tFile = p.folder === 'p08_nondry' ? 'thumb.JPG' : 'thumb.' + tExt;
+  const tFile = p.folder === 'p08_nondry' ? 'thumb.png' : 'thumb.' + tExt;
 
   const thumbDiv = document.createElement('div');
   thumbDiv.className = 'archive-thumb';
@@ -794,20 +817,16 @@ function renderDetail(p) {
     container.appendChild(wrap);
 
   } else if (p.layout === 'jumble2') {
-    // 3 / 2 / 2 / 2 ... 패턴
     const imgs = p.images || [];
     const wrap = document.createElement('div');
     wrap.className = 'layout-jumble2';
-    let i = 0;
-    let first = true;
+    let i = 0, first = true;
     while (i < imgs.length) {
       const rowSize = first ? 3 : 2;
       first = false;
       const row = document.createElement('div');
-      row.className = 'd-img-wrap' in {} ? '' : ''; // dummy
       row.className = 'j2-row ' + (rowSize === 3 ? 'cols3' : 'cols2');
-      const slice = imgs.slice(i, i + rowSize);
-      slice.forEach(f => {
+      imgs.slice(i, i + rowSize).forEach(f => {
         const cell = document.createElement('div');
         cell.className = 'd-img-wrap';
         cell.appendChild(lazyImg(base + f, p.title));
