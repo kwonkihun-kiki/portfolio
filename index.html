@@ -1555,11 +1555,16 @@ document.querySelectorAll('.info-tabs a[data-tab]').forEach(a => {
   var drag = { el: null, ox: 0, oy: 0, sx: 0, sy: 0 };
 
   function getNode(path) {
-    var parts = path.replace(/\/$/, '').split('/');
-    var node = FS;
-    for (var i = 0; i < parts.length; i++) {
-      node = node[parts[i]] || (node.children && node.children[parts[i]]);
-      if (!node) return null;
+    // 'free/' → FS['free/']
+    // 'free/smiley/' → FS['free/'].children['smiley']
+    var clean = path.replace(/\/$/, ''); // 'free' or 'free/smiley'
+    var parts = clean.split('/');        // ['free'] or ['free','smiley']
+    // 첫 번째 파트는 루트 키 (슬래시 포함)
+    var node = FS[parts[0] + '/'];
+    if (!node) return null;
+    for (var i = 1; i < parts.length; i++) {
+      if (!node.children || !node.children[parts[i]]) return null;
+      node = node.children[parts[i]];
     }
     return node;
   }
@@ -1601,6 +1606,7 @@ document.querySelectorAll('.info-tabs a[data-tab]').forEach(a => {
     });
 
     var pathLabel = document.createElement('span');
+    pathLabel.id  = 'finder-path-label';
     pathLabel.style.cssText = 'margin-left:8px;color:#888;letter-spacing:0.04em;font-size:10px;';
     pathLabel.textContent = currentPath;
     titlebar.appendChild(pathLabel);
@@ -1675,7 +1681,7 @@ document.querySelectorAll('.info-tabs a[data-tab]').forEach(a => {
     content.innerHTML = '';
 
     // pathLabel 갱신
-    var pl = finderEl.querySelector('span[style*="color:#888"]');
+    var pl = document.getElementById('finder-path-label');
     if (pl) pl.textContent = currentPath;
 
     var node = getNode(currentPath);
